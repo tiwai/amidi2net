@@ -9,6 +9,7 @@
 void am2n_config_init(struct am2n_config *config)
 {
 	config->support_fec = true;
+	config->strict_retransmit = false;
 	config->liveness_timeout = 5000;	/* default server ping timeout */
 	config->missing_pkt_timeout = 30;	/* timeout for missing packet */
 	config->retransmit_timeout = 100;	/* timeout for retransmit request */
@@ -125,6 +126,9 @@ int am2n_config_parse_option(struct am2n_config *config,
 		return 1;
 	case OPT_PASSTHROUGH:
 		config->passthrough = true;
+		return 1;
+	case OPT_STRICT_RETRANSMIT:
+		config->strict_retransmit = true;
 		return 1;
 	case OPT_DEBUG:
 		enable_debug++;

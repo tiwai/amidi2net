@@ -509,11 +509,13 @@ static void reduce_pending_buffer(struct ump_session *session,
 		if (delsize <= 0) {
 			pb->filled -= head;
 			memmove(pb->buffer, p, pb->filled * 4);
+			debug2("pending buffer reduced: filled=%d", pb->filled);
 			return;
 		}
 		len = pb_len(*p);
 		delsize -= len + 1;
 	}
+	debug2("pending buffer reduced: filled=%d", pb->filled);
 }
 
 /* Purge pending buffer if all filled events are expired */
@@ -535,6 +537,7 @@ static void purge_pending_buffer(struct ump_session *session,
 	}
 
 	pb->filled = 0;
+	debug2("pending buffer purged");
 }
 
 /* Push a UMP packet to the pending buffer with the given seqno */
@@ -546,6 +549,8 @@ static int push_pending_buffer(struct ump_session *session,
 	struct ump_pending_buffer *pb = &session->pending_buffer;
 	uint32_t *p;
 
+	debug2("push to pending buffer: seqno=%d (%d/%d), filled=%d", seqno,
+	       session->seqno_recv, session->seqno_recv_highest, pb->filled);
 	if (len + 1 > PENDING_BUFFER_SIZE)
 		return -1;
 
@@ -592,6 +597,7 @@ static void drop_pending_buffer(struct ump_pending_buffer *pb,
 	int rest = pb->filled - len - (p - pb->buffer);
 
 	pb->filled -= len + 1;
+	debug2("drop pending buffer: filled=%d", pb->filled);
 	if (rest <= 0)
 		return;
 	memmove(p - 1, p + len, rest * 4);
@@ -1075,11 +1081,21 @@ static int process_session_cmd(struct am2n_ctx *ctx,
 
 		case UMP_NET_RETRANSMIT_ERR:
 			if (session && session->missing > 1) {
-				debug("can't receive retransmission, quitting");
-				send_bye(sock, addr, addr_size,
-					 UMP_NET_BYE_REASON_PACKET_MISSING);
-				ctx->close_session(ctx, session);
-				session = NULL;
+				if (ctx->config->strict_retransmit) {
+					debug("can't receive retransmission, quitting");
+					send_bye(sock, addr, addr_size,
+						 UMP_NET_BYE_REASON_PACKET_MISSING);
+					ctx->close_session(ctx, session);
+					session = NULL;
+					break;
+				}
+
+				/* OK, let's give up and reset pending buffer */
+				debug("can't receive retransmit, giving up and proceed");
+				session->missing = 0;
+				session->seqno_recv = session->seqno_recv_highest;
+				clear_pending_buffer(session);
+				break;
 			}
 			break;
 

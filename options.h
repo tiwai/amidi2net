@@ -8,6 +8,7 @@ struct am2n_config {
 	bool support_fec;			/* enable FEC */
 	bool ipv6;				/* enable IPv6 */
 	bool passthrough;			/* don't handle UMP stream messages */
+	bool strict_retransmit;			/* don't allow retransmit errors */
 
 	unsigned int liveness_timeout;		/* first ping timeout (in msec) */
 	unsigned int missing_pkt_timeout;	/* timeout for missing packet resubmit (in msec) */
@@ -60,6 +61,7 @@ enum {
 	OPT_FAIL_TEST,
 	OPT_FAIL_TEST_MODE,
 	OPT_PASSTHROUGH,
+	OPT_STRICT_RETRANSMIT,
 };
 
 #define COMMON_CONFIG_GETOPT_LONG					\
@@ -79,6 +81,7 @@ enum {
 	{"fail-test", 1, 0, OPT_FAIL_TEST},				\
 	{"fail-test-mode", 1, 0, OPT_FAIL_TEST_MODE},			\
 	{"passthrough", 0, 0, OPT_PASSTHROUGH},				\
+	{"strict-retransmit", 0, 0, OPT_STRICT_RETRANSMIT},		\
 	{"debug", 0, 0, OPT_DEBUG}
 
 #define SERVER_CONFIG_GETOPT	"S:R:H:E:P:G:B:f6s:d"
@@ -114,6 +117,7 @@ enum {
 	"  --fail-test=<N>: simulate packet failure at random 1/N\n" \
 	"  --fail-test-mode=<MODE>: packet failure test mode (0-4)\n" \
 	"  --passthrough: don't handle UMP stream messages\n" \
+	"  --strict-retransmit: don't allow retransmit errors\n" \
 	"  -d,--debug: enable debug\n"
 
 #define SERVER_CONFIG_USAGE	    \
