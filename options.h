@@ -62,9 +62,7 @@ enum {
 	OPT_PASSTHROUGH,
 };
 
-#define SERVER_CONFIG_GETOPT	"S:R:H:E:P:G:B:f6s:d"
-
-#define SERVER_CONFIG_GETOPT_LONG					\
+#define COMMON_CONFIG_GETOPT_LONG					\
 	{"seq", 1, 0, OPT_SEQ_BRIDGE_MODE},				\
 	{"rawmidi", 1, 0, OPT_RAWMIDI_MODE},				\
 	{"hub", 1, 0, OPT_SEQ_HUB_MODE},				\
@@ -74,35 +72,32 @@ enum {
 	{"blocks", 1, 0, OPT_BLOCKS},					\
 	{"fec", 0, 0, OPT_SUPPORT_FEC},					\
 	{"ipv6", 0, 0, OPT_IPV6},					\
-	{"liveness-timeout", 1, 0, OPT_LIVENESS_TIMEOUT},		\
-	{"ping-timeout", 1, 0, OPT_PING_TIMEOUT},			\
-	{"max-ping-retry", 1, 0, OPT_MAX_PING_RETRY},			\
 	{"missing-pkt-timeout", 1, 0, OPT_MISSING_PKT_TIMEOUT},		\
 	{"retransmit-timeout", 1, 0, OPT_RETRANSMIT_TIMEOUT},		\
 	{"max-missing-retry", 1, 0, OPT_MAX_MISSING_RETRY},		\
 	{"zerolength-ump-timeout", 1, 0, OPT_ZEROLENGTH_UMP_TIMEOUT},	\
-	{"sessions", 1, 0, OPT_MAX_SESSIONS},				\
 	{"fail-test", 1, 0, OPT_FAIL_TEST},				\
 	{"fail-test-mode", 1, 0, OPT_FAIL_TEST_MODE},			\
 	{"passthrough", 0, 0, OPT_PASSTHROUGH},				\
 	{"debug", 0, 0, OPT_DEBUG}
+
+#define SERVER_CONFIG_GETOPT	"S:R:H:E:P:G:B:f6s:d"
+
+#define SERVER_CONFIG_GETOPT_LONG					\
+	COMMON_CONFIG_GETOPT_LONG,					\
+	{"sessions", 1, 0, OPT_MAX_SESSIONS},				\
+	{"liveness-timeout", 1, 0, OPT_LIVENESS_TIMEOUT},		\
+	{"ping-timeout", 1, 0, OPT_PING_TIMEOUT},			\
+	{"max-ping-retry", 1, 0, OPT_MAX_PING_RETRY}
 
 #define CLIENT_CONFIG_GETOPT	"S:R:H:E:P:G:B:f6s:d"
 
 #define CLIENT_CONFIG_GETOPT_LONG					\
-	{"fec", 0, 0, OPT_SUPPORT_FEC},					\
-	{"missing-pkt-timeout", 1, 0, OPT_MISSING_PKT_TIMEOUT},		\
-	{"retransmit-timeout", 1, 0, OPT_RETRANSMIT_TIMEOUT},		\
-	{"max-missing-retry", 1, 0, OPT_MAX_MISSING_RETRY},		\
-	{"zerolength-ump-timeout", 1, 0, OPT_ZEROLENGTH_UMP_TIMEOUT},	\
+	COMMON_CONFIG_GETOPT_LONG,					\
 	{"invitation-timeout", 1, 0, OPT_INVITATION_TIMEOUT},		\
-	{"max-invitation-retry", 1, 0, OPT_MAX_INVITATION_RETRY},	\
-	{"fail-test", 1, 0, OPT_FAIL_TEST},				\
-	{"fail-test-mode", 1, 0, OPT_FAIL_TEST_MODE},			\
-	{"passthrough", 0, 0, OPT_PASSTHROUGH},				\
-	{"debug", 0, 0, OPT_DEBUG}
+	{"max-invitation-retry", 1, 0, OPT_MAX_INVITATION_RETRY}
 
-#define SERVER_CONFIG_USAGE	    \
+#define COMMON_CONFIG_USAGE \
 	"  -S,--seq=<SEQ:PORT>: run in sequencer bridge mode\n" \
 	"  -R,--rawmidi=<DEVICE>: run in rawmidi bridge mode\n" \
 	"  -H,--hub=<MIDIVERSION>: run in sequencer hub mode\n" \
@@ -112,39 +107,26 @@ enum {
 	"  -B,--blocks=<NUM>: number of UMP Function Blocks (for hub mode)\n" \
 	"  -f,--fec: disable FEC\n"			\
 	"  -6,--ipv6: enable IPv6\n"			\
+	"  --missing-pkt-timeout=<MSEC>: timeout for missing packet resubmit (in msec)\n" \
+	"  --retransmit-timeout=<MSEC>: retransmit retry timeout (in msec)\n" \
+	"  --max-missing-retry=<NUM>: max retries for missing packet recovery\n" \
+	"  --zerolength-ump-timeout=<MSEC>: zero-length UMP timeout (in msec)\n" \
+	"  --fail-test=<N>: simulate packet failure at random 1/N\n" \
+	"  --fail-test-mode=<MODE>: packet failure test mode (0-4)\n" \
+	"  --passthrough: don't handle UMP stream messages\n" \
+	"  -d,--debug: enable debug\n"
+
+#define SERVER_CONFIG_USAGE	    \
+	COMMON_CONFIG_USAGE \
 	"  -s,--sessions=<N>: max number of sessions\n" \
 	"  --liveness-timeout=<MSEC>: first ping timeout (in msec)\n" \
 	"  --ping-timeout=<MSEC>: ping retry timeout (in msec)\n" \
-	"  --max-ping-retry=<NUM>: max retries for ping connection checks\n" \
-	"  --missing-pkt-timeout=<MSEC>: timeout for missing packet resubmit (in msec)\n" \
-	"  --retransmit-timeout=<MSEC>: retransmit retry timeout (in msec)\n" \
-	"  --max-missing-retry=<NUM>: max retries for missing packet recovery\n" \
-	"  --zerolength-ump-timeout=<MSEC>: zero-length UMP timeout (in msec)\n" \
-	"  --fail-test=<N>: simulate packet failure at random 1/N\n" \
-	"  --fail-test-mode=<MODE>: packet failure test mode (0-4)\n" \
-	"  --passthrough: don't handle UMP stream messages\n" \
-	"  -d,--debug: enable debug\n"
+	"  --max-ping-retry=<NUM>: max retries for ping connection checks\n"
 
 #define CLIENT_CONFIG_USAGE \
-	"  -S,--seq=<SEQ:PORT>: run in sequencer bridge mode\n" \
-	"  -R,--rawmidi=<DEVICE>: run in rawmidi bridge mode\n" \
-	"  -H,--hub=<MIDIVERSION>: run in sequencer hub mode\n" \
-	"  -N,--ep-name=<NAME>: UMP Endpoint name (for hub mode)\n" \
-	"  -P,--prod-id=<NAME>: UMP Product Id (for hub mode)\n" \
-	"  -G,--groups=<NUM>: number of UMP Groups (for hub mode)\n" \
-	"  -B,--blocks=<NUM>: number of UMP Function Blocks (for hub mode)\n" \
-	"  -f,--fec: disable FEC\n"			\
-	"  -6,--ipv6: enable IPv6\n"			\
-	"  --missing-pkt-timeout=<MSEC>: timeout for missing packet resubmit (in msec)\n" \
-	"  --retransmit-timeout=<MSEC>: retransmit retry timeout (in msec)\n" \
-	"  --max-missing-retry=<NUM>: max retries for missing packet recovery\n" \
-	"  --zerolength-ump-timeout=<MSEC>: zero-length UMP timeout (in msec)\n" \
+	COMMON_CONFIG_USAGE \
 	"  --invitation-timeout=<MSEC>: timeout for invitation request (in msec)\n" \
-	"  --max-invitation-retry=<NUM:> max retries of invitations\n" \
-	"  --fail-test=<N>: simulate packet failure at random 1/N\n" \
-	"  --fail-test-mode=<MODE>: packet failure test mode (0-4)\n" \
-	"  --passthrough: don't handle UMP stream messages\n" \
-	"  -d,--debug: enable debug\n"
+	"  --max-invitation-retry=<NUM:> max retries of invitations\n"
 
 /* Configuration setup */
 void am2n_config_init(struct am2n_config *config);
