@@ -42,9 +42,14 @@ amidi2net_client_LDADD = @ALSA_LIBS@
 if SUPPORT_AUTH
 amidi2net_client_LDADD += @OPENSSL_LIBS@
 endif
+if SUPPORT_MDNS
+amidi2net_client_SOURCES += lookup.c
+AM_CFLAGS += @AVAHI_CFLAGS@
+amidi2net_client_LDADD += @AVAHI_LIBS@
+endif
 
 if SUPPORT_MDNS
-amidi2net_list_SOURCES = amidi2net-list.c
+amidi2net_list_SOURCES = amidi2net-list.c lookup.c
 amidi2net_list_LDADD = @AVAHI_LIBS@
 endif
 

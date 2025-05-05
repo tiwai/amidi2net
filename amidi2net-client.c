@@ -11,13 +11,19 @@
 #define DEFAULT_PROD_ID		VERSION
 
 static struct am2n_config config;
+static sock_addr_t host_addr;
 
 static void usage(void)
 {
 	printf("amidi2net-client: ALSA Network MIDI 2.0 UDP client program\n\n"
-	       "usage: amidi2net-client [options] <server-address> <port>\n"
+	       "usage:\n"
+	       "amidi2net-client [options] <server-address> <port>\n"
 	       "  <server-address> = IP address or name of the Network MIDI server host\n"
 	       "  <port> = UDP port of the Network MIDI host\n\n"
+#ifdef SUPPORT_MDNS
+	       "amidi2net-client [options] -l <service-name>\n"
+	       "  <service-name> = mDNS service name\n\n"
+#endif
 	       "options:\n"
 	       CLIENT_CONFIG_USAGE
 #ifdef SUPPORT_AUTH
@@ -33,12 +39,21 @@ static void usage(void)
 #define AUTH_OPT ""
 #endif
 
+#ifdef SUPPORT_MDNS
+#define MDNS_OPT "l:"
+#else
+#define MDNS_OPT ""
+#endif
+
 static const struct option long_opts[] = {
 #ifdef SUPPORT_AUTH
 	{"user", 1, 0, 'u'},
 	{"secret", 1, 0, 'x'},
 #endif
 	SERVER_CONFIG_GETOPT_LONG,
+#ifdef SUPPORT_MDNS
+	{"lookup", 1, 0, 'l'},
+#endif
 	{}
 };
 
@@ -65,23 +80,49 @@ static int get_addr(const char *server, const char *port, bool ipv6, void *addr)
 	return len;
 }
 
+#ifdef SUPPORT_MDNS
+static const char *target_name;
+static bool target_found;
+
+static int mdns_callback(const char *name, const char *address,
+			 int port, bool ipv6, const char *ep_name,
+			 const char *prod_id, void *priv_data)
+{
+	char port_name[16];
+
+	if (strcmp(name, target_name))
+		return 0;
+
+	snprintf(port_name, sizeof(port_name), "%d", port);
+	if (get_addr(address, port_name, ipv6, &host_addr) < 0) {
+		error("Cannot get IP address for %s:%s", address, port_name);
+	} else {
+		log("host %s port %d found for service %s", address, port, name);
+		target_found = 1;
+	}
+	return 1;
+}
+#endif /* SUPPORT_MDNS */
+
 int main(int argc, char **argv)
 {
 	struct am2n_client_ctx *client;
 	const char *server;
 	const char *port;
-	sock_addr_t addr;
 	int c, opt_idx, err;
 #ifdef SUPPORT_AUTH
 	const char *username = NULL;
 	const char *secret = NULL;
+#endif
+#ifdef SUPPORT_MDNS
+	const char *lookup = NULL;
 #endif
 
 	am2n_config_init(&config);
 	config.ep_name = DEFAULT_EP_NAME;
 	config.prod_id = DEFAULT_PROD_ID;
 
-	while ((c = getopt_long(argc, argv, CLIENT_CONFIG_GETOPT AUTH_OPT,
+	while ((c = getopt_long(argc, argv, CLIENT_CONFIG_GETOPT AUTH_OPT MDNS_OPT,
 				long_opts, &opt_idx)) != -1) {
 		err = am2n_config_parse_option(&config, false, c, optarg);
 		if (err < 0)
@@ -101,15 +142,38 @@ int main(int argc, char **argv)
 			secret = optarg;
 			break;
 #endif
+#ifdef SUPPORT_MDNS
+		case 'l':
+			lookup = optarg;
+			break;
+#endif
 		default:
 			usage();
 			return 1;
 		}
 	}
 
-	if (optind + 1 >= argc) {
-		usage();
-		return 1;
+#ifdef SUPPORT_MDNS
+	if (lookup) {
+		target_name = lookup;
+		am2n_mdns_lookup_service(1500, false, mdns_callback, NULL);
+		if (!target_found) {
+			error("Cannot find service %s", lookup);
+			return 1;
+		}
+	} else
+#endif
+	{
+		if (optind + 1 >= argc) {
+			usage();
+			return 1;
+		}
+		server = argv[optind];
+		port = argv[optind + 1];
+		if (get_addr(server, port, config.ipv6, &host_addr) < 0) {
+			error("Cannot get IP address for %s:%s", server, port);
+			return 1;
+		}
 	}
 
 #ifdef SUPPORT_AUTH
@@ -119,15 +183,7 @@ int main(int argc, char **argv)
 	}
 #endif
 
-	server = argv[optind];
-	port = argv[optind + 1];
-
-	if (get_addr(server, port, config.ipv6, &addr) < 0) {
-		error("Cannot get IP address for %s:%s", server, port);
-		return 1;
-	}
-
-	client = am2n_client_init(&addr, &config);
+	client = am2n_client_init(&host_addr, &config);
 	if (!client) {
 		error("Client allocation error");
 		return 1;

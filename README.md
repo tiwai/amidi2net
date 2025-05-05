@@ -32,6 +32,14 @@ the command line arguments.  For example,
 % amidi2net-client my-server.com 5673
 ```
 
+Alternatively, you can invoke the client with `--lookup` (or `-l`)
+option together with the mDNS service name of the target Network MIDI
+host instead of passing the address and the port manually, too.
+For example,
+```
+% amidi2net-client -l amidi2net
+```
+
 ALSA Sequencer Hub Mode
 -----------------------
 

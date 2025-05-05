@@ -234,12 +234,23 @@ void am2n_server_free(struct am2n_server_ctx *ctx);
 int am2n_server_open_socket(struct am2n_server_ctx *ctx, int port, bool ipv6);
 int am2n_server_loop(struct am2n_server_ctx *ctx);
 
+#ifdef SUPPORT_MDNS
 /*
  * Server mDNS publisher
  */
 struct am2n_mdns_ctx *am2n_server_publish_mdns(struct am2n_server_ctx *server,
 					       const char *service);
 void am2n_server_quit_mdns(struct am2n_mdns_ctx *ctx);
+
+/*
+ * mDNS browsing
+ */
+typedef int (*am2n_lookup_callback_t)(const char *name, const char *address,
+				      int port, bool ipv6, const char *ep_name,
+				      const char *prod_id, void *priv_data);
+int am2n_mdns_lookup_service(int timeout_msec, bool ignore_local,
+			     am2n_lookup_callback_t callback, void *priv_data);
+#endif /* SUPPORT_MDNS */
 
 /*
  * Client API
