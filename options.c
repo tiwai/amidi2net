@@ -60,11 +60,11 @@ int am2n_config_parse_option(struct am2n_config *config,
 	case OPT_SEQ_BRIDGE_MODE:
 		config->io_type = UMP_IO_BACKEND_SEQ_BRIDGE;
 		config->seq_devname = optarg;
-		break;
+		return 1;
 	case OPT_RAWMIDI_MODE:
 		config->io_type = UMP_IO_BACKEND_RAWMIDI;
 		config->rawmidi_device = optarg;
-		break;
+		return 1;
 	case OPT_SEQ_HUB_MODE:
 		config->io_type = UMP_IO_BACKEND_SEQ_HUB;
 		config->midi_version = atoi(optarg);
@@ -73,27 +73,27 @@ int am2n_config_parse_option(struct am2n_config *config,
 			error("Invalid midi version specified");
 			return -1;
 		}
-		break;
+		return 1;
 	case OPT_EP_NAME:
 		config->ep_name = optarg;
-		break;
+		return 1;
 	case OPT_PROD_ID:
 		config->prod_id = optarg;
-		break;
+		return 1;
 	case OPT_GROUPS:
 		config->num_groups = atoi(optarg);
 		if (config->num_groups < 1 || config->num_groups > 16) {
 			error("Invalid num_groups specified");
 			return -1;
 		}
-		break;
+		return 1;
 	case OPT_BLOCKS:
 		config->num_blocks = atoi(optarg);
 		if (config->num_blocks < 1 || config->num_blocks > 32) {
 			error("Invalid num_groups specified");
 			return -1;
 		}
-		break;
+		return 1;
 	case OPT_SUPPORT_FEC:
 		config->support_fec = false;
 		return 1;
