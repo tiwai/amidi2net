@@ -82,7 +82,7 @@ int main(int argc, char **argv)
 
 	while ((c = getopt_long(argc, argv, "p:" SERVER_CONFIG_GETOPT MDNS_OPT AUTH_OPT,
 				long_opts, &opt_idx)) != -1) {
-		err = am2n_config_parse_option(&config, false, c, optarg);
+		err = am2n_config_parse_option(&config, true, c, optarg);
 		if (err < 0)
 			return 1;
 		else if (err > 0)
