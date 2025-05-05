@@ -14,7 +14,10 @@ static struct am2n_config config;
 
 static void usage(void)
 {
-	printf("usage: amidi2net-client [options] server port\n"
+	printf("amidi2net-client: ALSA Network MIDI 2.0 UDP client program\n\n"
+	       "usage: amidi2net-client [options] <server-address> <port>\n"
+	       "  <server-address> = IP address or name of the Network MIDI server host\n"
+	       "  <port> = UDP port of the Network MIDI host\n\n"
 	       "options:\n"
 	       CLIENT_CONFIG_USAGE
 #ifdef SUPPORT_AUTH

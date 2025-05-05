@@ -98,9 +98,9 @@ enum {
 	{"max-invitation-retry", 1, 0, OPT_MAX_INVITATION_RETRY}
 
 #define COMMON_CONFIG_USAGE \
+	"  -H,--hub=<MIDIVERSION>: run in sequencer hub mode (default)\n" \
 	"  -S,--seq=<SEQ:PORT>: run in sequencer bridge mode\n" \
 	"  -R,--rawmidi=<DEVICE>: run in rawmidi bridge mode\n" \
-	"  -H,--hub=<MIDIVERSION>: run in sequencer hub mode\n" \
 	"  -N,--ep-name=<NAME>: UMP Endpoint name (for hub mode)\n" \
 	"  -P,--prod-id=<NAME>: UMP Product Id (for hub mode)\n" \
 	"  -G,--groups=<NUM>: number of UMP Groups (for hub mode)\n" \

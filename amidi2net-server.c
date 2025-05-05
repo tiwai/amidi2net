@@ -27,7 +27,8 @@ static struct am2n_config config;
 
 static void usage(void)
 {
-	printf("usage: amidi2net-server [options] device-name\n"
+	printf("amidi2net-server: ALSA Network MIDI 2.0 UDP server program\n\n"
+	       "usage: amidi2net-server [options]\n\n"
 	       "options:\n"
 	       SERVER_CONFIG_USAGE
 	       "  -p,--port=<PORT>: use the specific UDP port number\n"
