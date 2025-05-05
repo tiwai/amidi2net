@@ -147,8 +147,9 @@ static const struct option long_opts[] = {
 
 int main(int argc, char **argv)
 {
-	unsigned int timeout_msec = 3000;
+	unsigned int timeout_msec = 1500;
 	uint64_t timeout;
+	int64_t n;
 	struct timeval tv;
 	int c, opt_idx, error;
 
@@ -184,10 +185,12 @@ int main(int argc, char **argv)
 	base_time = tv.tv_sec;
 	timeout = cur_time(&tv) + timeout_msec * 1000UL;
 
-	while (!avahi_simple_poll_iterate(simple_poll, 5000)) {
+	while (!avahi_simple_poll_iterate(simple_poll, timeout_msec)) {
 		gettimeofday(&tv, NULL);
-		if (cur_time(&tv) >= timeout)
+		n = timeout - cur_time(&tv);
+		if (n <= 0)
 			break;
+		timeout_msec = (n + 999) / 1000;
 	}
 
 	return 0;

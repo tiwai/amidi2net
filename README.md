@@ -199,7 +199,7 @@ The services on the local host are excluded as default.  For browsing
 also the services on the local host, pass `--all` (or `-a`) option.
 
 The `amidi2net-list` program quits after a certain time out, as
-default in 3 seconds.  You can change the time out value via
+default in 1.5 seconds.  You can change the time out value via
 `--timeout` (or `-t`) option, specified in milli seconds.
 
 Other Options for Server
