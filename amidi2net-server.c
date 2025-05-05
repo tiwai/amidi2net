@@ -30,8 +30,10 @@ static void usage(void)
 	printf("usage: amidi2net-server [options] device-name\n"
 	       "options:\n"
 	       SERVER_CONFIG_USAGE
-	       "  -n,--service-name=<NAME>: service name string\n"
 	       "  -p,--port=<PORT>: use the specific UDP port number\n"
+#ifdef SUPPORT_MDNS
+	       "  -n,--service-name=<NAME>: mDNS service name string\n"
+#endif
 #ifdef SUPPORT_AUTH
 	       "  -u,--user=<NAME>: use user-authentication with the given name\n"
 	       "  -x,--secret=<STR>: secret / password for authentication\n"
@@ -45,7 +47,7 @@ enum {
 };
 
 #ifdef SUPPORT_MDNS
-#define MDNS_OPT "n"
+#define MDNS_OPT "n:"
 #else
 #define MDNS_OPT ""
 #endif
