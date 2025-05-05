@@ -10,11 +10,11 @@ void am2n_config_init(struct am2n_config *config)
 {
 	config->support_fec = true;
 	config->liveness_timeout = 5000;	/* default server ping timeout */
-	config->missing_pkt_timeout = 10;	/* timeout for missing packet */
-	config->retransmit_timeout = 30;	/* timeout for retransmit request */
-	config->ping_timeout = 30;		/* timeout for ping retry */
-	config->zerolength_ump_timeout = 50;	/* timeout for zero-length UMP */
-	config->invitation_timeout = 30;	/* timeout for invitation request */
+	config->missing_pkt_timeout = 30;	/* timeout for missing packet */
+	config->retransmit_timeout = 100;	/* timeout for retransmit request */
+	config->ping_timeout = 100;		/* timeout for ping retry */
+	config->zerolength_ump_timeout = 100;	/* timeout for zero-length UMP */
+	config->invitation_timeout = 100;	/* timeout for invitation request */
 	config->max_missing_retry = 5;		/* max retries for missing packet recovery */
 	config->max_ping_retry = 3;		/* max retries for ping connection checks */
 	config->max_invitation_retry = 3;	/* max retries of invitations */
