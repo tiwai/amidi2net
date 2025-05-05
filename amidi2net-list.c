@@ -8,7 +8,8 @@
 static void usage(void)
 {
 	printf("amidi2net-list: Browse Network MIDI 2.0 UDP servers\n\n"
-	       "usage: amidi2net-list [options]\n\n"
+	       "usage:\n"
+	       "amidi2net-list [options]\n\n"
 	       "options:\n"
 	       "  -t,--timeout=<MSEC>: exit timeout in msec\n"
 	       "  -a,--all: browse also local host\n");
