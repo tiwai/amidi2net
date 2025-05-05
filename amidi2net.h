@@ -54,7 +54,7 @@ struct ump_pending_buffer {
  * ring-buffer for output UMP data;
  * used for FEC and retransmit requests
  */
-#define MAX_OUTPUT_CACHE	32
+#define MAX_OUTPUT_CACHE	64
 
 struct ump_output_cache_entry {
 	unsigned char len;
