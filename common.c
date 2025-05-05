@@ -130,9 +130,10 @@ static int send_retransmit_req(struct ump_session *session,
 static int send_ping(struct ump_session *session)
 {
 	unsigned char buf[16];
-	unsigned int ping_id = session->seqno_sent;
+	unsigned int ping_id;
 	int len = 1;
 
+	ping_id = (unsigned int)(session->ctx->tstamp >> 16);
 	add_signature(buf);
 	len += cmd_fill_ping(buf + 4, (unsigned char *)&ping_id);
 	assert(len * 4 <= sizeof(buf));
