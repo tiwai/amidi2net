@@ -167,12 +167,13 @@ when the given authentication doesn't match.
 In the client side, pass the same options (`--secret` and `--user`)
 for authentication.  No prompt is implemented yet.
 
-Disabling FEC
--------------
+Forward Error Correction (FEC)
+------------------------------
 
-Forward Error Correction (FEC) is enabled as default.
-If you want to disable FEC, pass `--fec` (or `-f`) option to server or
-client.
+Forward Error Correction (FEC) is enabled as default on both server
+and client, and its default count is 3.  The FEC count number can be
+changed via `--fec` (or `-f`) option, and FEC can be disabled by
+passing 0 to the option.
 
 Publishing over mDNS
 --------------------

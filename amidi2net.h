@@ -219,8 +219,6 @@ struct am2n_client_ctx {
 #define NSEC		1000000000	/* 10^9 */
 #define MSEC_TO_NSEC	1000000		/* 10^6 */
 
-#define MAX_FEC_COUNT		2	/* number of FEC data to be filled */
-
 #define MAX_SERVER_POLL_TIMEOUT	10	/* in seconds */
 
 /*

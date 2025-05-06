@@ -5,7 +5,7 @@
 #define __OPTIONS_H_INC
 
 struct am2n_config {
-	bool support_fec;			/* enable FEC */
+	unsigned int fec_count;			/* number of FEC data */
 	bool ipv6;				/* enable IPv6 */
 	bool passthrough;			/* don't handle UMP stream messages */
 	bool strict_retransmit;			/* don't allow retransmit errors */
@@ -47,7 +47,7 @@ enum {
 	OPT_PROD_ID = 'P',
 	OPT_GROUPS = 'G',
 	OPT_BLOCKS = 'B',
-	OPT_SUPPORT_FEC	= 'f',
+	OPT_FEC_COUNT = 'f',
 	OPT_IPV6 = '6',
 	OPT_MAX_SESSIONS = 's',
 	OPT_DEBUG = 'd',
@@ -76,7 +76,7 @@ enum {
 	{"prod-id", 1, 0, OPT_PROD_ID},					\
 	{"groups", 1, 0, OPT_GROUPS},					\
 	{"blocks", 1, 0, OPT_BLOCKS},					\
-	{"fec", 0, 0, OPT_SUPPORT_FEC},					\
+	{"fec", 1, 0, OPT_FEC_COUNT},					\
 	{"ipv6", 0, 0, OPT_IPV6},					\
 	{"missing-pkt-timeout", 1, 0, OPT_MISSING_PKT_TIMEOUT},		\
 	{"retransmit-timeout", 1, 0, OPT_RETRANSMIT_TIMEOUT},		\
@@ -90,7 +90,7 @@ enum {
 	{"output-buffer-size", 1, 0, OPT_OUTPUT_BUFFER_SIZE},		\
 	{"debug", 0, 0, OPT_DEBUG}
 
-#define SERVER_CONFIG_GETOPT	"S:R:H:E:P:G:B:f6s:d"
+#define SERVER_CONFIG_GETOPT	"S:R:H:E:P:G:B:f:6s:d"
 
 #define SERVER_CONFIG_GETOPT_LONG					\
 	COMMON_CONFIG_GETOPT_LONG,					\
@@ -99,7 +99,7 @@ enum {
 	{"ping-timeout", 1, 0, OPT_PING_TIMEOUT},			\
 	{"max-ping-retry", 1, 0, OPT_MAX_PING_RETRY}
 
-#define CLIENT_CONFIG_GETOPT	"S:R:H:E:P:G:B:f6s:d"
+#define CLIENT_CONFIG_GETOPT	"S:R:H:E:P:G:B:f:6s:d"
 
 #define CLIENT_CONFIG_GETOPT_LONG					\
 	COMMON_CONFIG_GETOPT_LONG,					\
@@ -114,7 +114,7 @@ enum {
 	"  -P,--prod-id=<NAME>: UMP Product Id (for hub mode)\n" \
 	"  -G,--groups=<NUM>: number of UMP Groups (for hub mode)\n" \
 	"  -B,--blocks=<NUM>: number of UMP Function Blocks (for hub mode)\n" \
-	"  -f,--fec: disable FEC\n"			\
+	"  -f,--fec=<NUM>: number of FEC data\n" \
 	"  -6,--ipv6: enable IPv6\n"			\
 	"  --missing-pkt-timeout=<MSEC>: timeout for missing packet resubmit (in msec)\n" \
 	"  --retransmit-timeout=<MSEC>: retransmit retry timeout (in msec)\n" \

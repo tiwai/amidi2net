@@ -1309,7 +1309,7 @@ static void process_zerolength_ump_timeout(struct am2n_ctx *ctx)
 	debug2("send zero-length UMP #%d", ctx->zerolength_ump);
 	ctx->submit_ump(ctx, NULL, 0);
 
-	if (ctx->zerolength_ump > MAX_FEC_COUNT) {
+	if (ctx->zerolength_ump > ctx->config->fec_count) {
 		ctx->zerolength_ump = 0;
 	} else {
 		ctx->zerolength_ump++;
@@ -1361,8 +1361,8 @@ static void submit_server_output_ump(struct am2n_ctx *_ctx,
 	for (session = ctx->first_session; session; session = session->next) {
 		session->seqno_sent++;
 		submit_ump_data(session, 0, session->seqno_sent);
-		if (ctx->core.config->support_fec &&
-		    session->fec_count < MAX_FEC_COUNT)
+		if (ctx->core.config->fec_count &&
+		    session->fec_count < ctx->core.config->fec_count)
 			session->fec_count++;
 	}
 }
@@ -1590,8 +1590,8 @@ static void submit_client_output_ump(struct am2n_ctx *_ctx,
 
 	session->seqno_sent++;
 	submit_ump_data(session, 0, session->seqno_sent);
-	if (ctx->core.config->support_fec &&
-	    session->fec_count < MAX_FEC_COUNT)
+	if (ctx->core.config->fec_count &&
+	    session->fec_count < ctx->core.config->fec_count)
 		session->fec_count++;
 }
 
@@ -1868,7 +1868,7 @@ static int do_fail_test(struct ump_sock *sock, const void *addr,
 			drop_count++;
 			debug("simulate packet drop #%d: size=%d, %02x:%02x:%02x:%02x",
 			      drop_count, size, buf[4], buf[5], buf[6], buf[7]);
-			if (drop_count > MAX_FEC_COUNT)
+			if (drop_count > sock->ctx->config->fec_count)
 				drop_count = 0;
 			return size;
 		}
@@ -1876,7 +1876,7 @@ static int do_fail_test(struct ump_sock *sock, const void *addr,
 			return 0;
 		debug("simulate packet drop #1: size=%d, %02x:%02x:%02x:%02x",
 		      size, buf[4], buf[5], buf[6], buf[7]);
-		if (sock->ctx->config->support_fec)
+		if (sock->ctx->config->fec_count)
 			drop_count = 1;
 		return size;
 	case FAIL_TEST_SWAP_SENDER:

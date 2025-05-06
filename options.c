@@ -8,7 +8,7 @@
 /* set up the config with the default values */
 void am2n_config_init(struct am2n_config *config)
 {
-	config->support_fec = true;
+	config->fec_count = 3;			/* default FEC enablement */
 	config->strict_retransmit = false;
 	config->input_buffer_size = 128;
 	config->output_buffer_size = 64;
@@ -33,7 +33,7 @@ void am2n_config_init(struct am2n_config *config)
 void am2n_config_debug_print(const struct am2n_config *config, bool server)
 {
 	debug("configuration:");
-	debug("* support FEC: %d", config->support_fec);
+	debug("* FEC: %d", config->fec_count);
 	if (server) {
 		debug("* liveness ping timeout: %d", config->liveness_timeout);
 		debug("* ping retry timeout: %d", config->ping_timeout);
@@ -97,8 +97,12 @@ int am2n_config_parse_option(struct am2n_config *config,
 			return -1;
 		}
 		return 1;
-	case OPT_SUPPORT_FEC:
-		config->support_fec = false;
+	case OPT_FEC_COUNT:
+		config->fec_count = atoi(optarg);
+		if (config->fec_count > 32) {
+			error("Too many FEC count %d", config->fec_count);
+			return -1;
+		}
 		return 1;
 	case OPT_IPV6:
 		config->ipv6 = true;
@@ -142,7 +146,7 @@ int am2n_config_parse_option(struct am2n_config *config,
 		return 1;
 	case OPT_OUTPUT_BUFFER_SIZE:
 		config->output_buffer_size = atoi(optarg);
-		if (config->output_buffer_size < MAX_FEC_COUNT + 1) {
+		if (config->output_buffer_size < config->fec_count + 1) {
 			error("Invalid output buffer size %d",
 			      config->output_buffer_size);
 			return -1;
