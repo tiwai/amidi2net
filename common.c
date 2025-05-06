@@ -476,6 +476,25 @@ static int ump_output_cache_read(const struct ump_output_cache *cache,
  * very few, so I kept as is for now.
  */
 
+static int init_pending_buffer(struct ump_session *session,
+			       unsigned int size)
+{
+	session->pending_buffer.buffer = calloc(size, sizeof(uint32_t));
+	if (!session->pending_buffer.buffer) {
+		log("cannot allocate input buffer");
+		return -ENOMEM;
+	}
+	session->pending_buffer.buffer_size = size;
+	session->pending_buffer.filled = 0;
+	return 0;
+}
+
+static void free_pending_buffer(struct ump_session *session)
+{
+	free(session->pending_buffer.buffer);
+	session->pending_buffer.buffer = NULL;
+}
+
 /* Clear pending buffer */
 static void clear_pending_buffer(struct ump_session *session)
 {
@@ -499,7 +518,7 @@ static void reduce_pending_buffer(struct ump_session *session,
 				  int size)
 {
 	struct ump_pending_buffer *pb = &session->pending_buffer;
-	int delsize = size - (PENDING_BUFFER_SIZE - pb->filled);
+	int delsize = size - (pb->buffer_size - pb->filled);
 	unsigned char head;
 	unsigned char len;
 	uint32_t *p;
@@ -551,12 +570,12 @@ static int push_pending_buffer(struct ump_session *session,
 
 	debug2("push to pending buffer: seqno=%d (%d/%d), filled=%d", seqno,
 	       session->seqno_recv, session->seqno_recv_highest, pb->filled);
-	if (len + 1 > PENDING_BUFFER_SIZE)
+	if (len + 1 > pb->buffer_size)
 		return -1;
 
-	if (PENDING_BUFFER_SIZE - pb->filled < len + 1) {
+	if (pb->buffer_size - pb->filled < len + 1) {
 		reduce_pending_buffer(session, len + 1);
-		if (PENDING_BUFFER_SIZE - pb->filled < len + 1)
+		if (pb->buffer_size - pb->filled < len + 1)
 			return -1;
 	}
 
@@ -658,6 +677,10 @@ open_server_session(struct am2n_ctx *core, struct ump_sock *sock,
 	session = calloc(1, sizeof(*session));
 	if (!session)
 		return NULL;
+	if (init_pending_buffer(session, ctx->core.config->input_buffer_size)) {
+		free(session);
+		return NULL;
+	}
 	session->ctx = core;
 	session->sock = sock;
 	session->output_cache = ctx->output_cache; // share among all sessions
@@ -695,6 +718,8 @@ static void close_server_session(struct am2n_ctx *_ctx,
 		session->next->prev = session->prev;
 	else
 		ctx->last_session = session->prev;
+	free_pending_buffer(session);
+	free(session);
 }
 
 /*
@@ -1409,7 +1434,7 @@ struct am2n_server_ctx *am2n_server_init(const struct am2n_config *config)
 	ctx->ipv6.sockfd = -1;
 	ctx->ipv6.ipv6 = true;
 
-	ctx->output_cache = ump_output_cache_init(MAX_OUTPUT_CACHE);
+	ctx->output_cache = ump_output_cache_init(config->output_buffer_size);
 	if (!ctx->output_cache) {
 		free(ctx);
 		return NULL;
@@ -1613,7 +1638,10 @@ struct am2n_client_ctx *am2n_client_init(const void *addr,
 	session->ctx = &ctx->core;
 	session->state = STATE_INVITATION;
 
-	session->output_cache = ump_output_cache_init(MAX_OUTPUT_CACHE);
+	if (init_pending_buffer(session, ctx->core.config->input_buffer_size))
+		goto error;
+
+	session->output_cache = ump_output_cache_init(ctx->core.config->output_buffer_size);
 	if (!session->output_cache)
 		goto error;
 
@@ -1636,6 +1664,7 @@ void am2n_client_free(struct am2n_client_ctx *ctx)
 	if (ctx->session) {
 		if (ctx->session->output_cache)
 			ump_output_cache_free(ctx->session->output_cache);
+		free_pending_buffer(ctx->session);
 		free(ctx->session);
 	}
 	free(ctx);

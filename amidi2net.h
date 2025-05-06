@@ -43,19 +43,16 @@ enum ump_client_state {
  * ring-buffer for pending UMP inputs;
  * used for correcting missing packets via FEC
  */
-#define PENDING_BUFFER_SIZE	128
-
 struct ump_pending_buffer {
-	int filled;
-	uint32_t buffer[PENDING_BUFFER_SIZE];
+	unsigned int filled;
+	unsigned int buffer_size;
+	uint32_t *buffer;
 };
 
 /*
  * ring-buffer for output UMP data;
  * used for FEC and retransmit requests
  */
-#define MAX_OUTPUT_CACHE	64
-
 struct ump_output_cache_entry {
 	unsigned char len;
 	unsigned char data[16];	/* storing byte-swapped data for network */

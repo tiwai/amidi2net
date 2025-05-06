@@ -10,6 +10,8 @@ void am2n_config_init(struct am2n_config *config)
 {
 	config->support_fec = true;
 	config->strict_retransmit = false;
+	config->input_buffer_size = 128;
+	config->output_buffer_size = 64;
 	config->liveness_timeout = 5000;	/* default server ping timeout */
 	config->missing_pkt_timeout = 30;	/* timeout for missing packet */
 	config->retransmit_timeout = 100;	/* timeout for retransmit request */
@@ -129,6 +131,22 @@ int am2n_config_parse_option(struct am2n_config *config,
 		return 1;
 	case OPT_STRICT_RETRANSMIT:
 		config->strict_retransmit = true;
+		return 1;
+	case OPT_INPUT_BUFFER_SIZE:
+		config->input_buffer_size = atoi(optarg);
+		if (config->input_buffer_size < 2) {
+			error("Invalid input buffer size %d",
+			      config->input_buffer_size);
+			return -1;
+		}
+		return 1;
+	case OPT_OUTPUT_BUFFER_SIZE:
+		config->output_buffer_size = atoi(optarg);
+		if (config->output_buffer_size < MAX_FEC_COUNT + 1) {
+			error("Invalid output buffer size %d",
+			      config->output_buffer_size);
+			return -1;
+		}
 		return 1;
 	case OPT_DEBUG:
 		enable_debug++;

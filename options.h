@@ -9,6 +9,8 @@ struct am2n_config {
 	bool ipv6;				/* enable IPv6 */
 	bool passthrough;			/* don't handle UMP stream messages */
 	bool strict_retransmit;			/* don't allow retransmit errors */
+	unsigned int input_buffer_size;		/* input pending buffer size (in words) */
+	unsigned int output_buffer_size;	/* output cache buffer size (in words) */
 
 	unsigned int liveness_timeout;		/* first ping timeout (in msec) */
 	unsigned int missing_pkt_timeout;	/* timeout for missing packet resubmit (in msec) */
@@ -62,6 +64,8 @@ enum {
 	OPT_FAIL_TEST_MODE,
 	OPT_PASSTHROUGH,
 	OPT_STRICT_RETRANSMIT,
+	OPT_INPUT_BUFFER_SIZE,
+	OPT_OUTPUT_BUFFER_SIZE,
 };
 
 #define COMMON_CONFIG_GETOPT_LONG					\
@@ -82,6 +86,8 @@ enum {
 	{"fail-test-mode", 1, 0, OPT_FAIL_TEST_MODE},			\
 	{"passthrough", 0, 0, OPT_PASSTHROUGH},				\
 	{"strict-retransmit", 0, 0, OPT_STRICT_RETRANSMIT},		\
+	{"input-buffer-size", 1, 0, OPT_INPUT_BUFFER_SIZE},		\
+	{"output-buffer-size", 1, 0, OPT_OUTPUT_BUFFER_SIZE},		\
 	{"debug", 0, 0, OPT_DEBUG}
 
 #define SERVER_CONFIG_GETOPT	"S:R:H:E:P:G:B:f6s:d"
@@ -118,6 +124,8 @@ enum {
 	"  --fail-test-mode=<MODE>: packet failure test mode (0-4)\n" \
 	"  --passthrough: don't handle UMP stream messages\n" \
 	"  --strict-retransmit: don't allow retransmit errors\n" \
+	"  --input-buffer-size=<N>: input pending buffer size (in words)\n" \
+	"  --output-buffer-size=<N>: output cache buffer size (in words)\n" \
 	"  -d,--debug: enable debug\n"
 
 #define SERVER_CONFIG_USAGE	    \
