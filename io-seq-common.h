@@ -8,6 +8,8 @@
 #include "amidi2net.h"
 #include "options.h"
 #include <alsa/asoundlib.h>
+#include <alsa/ump.h> // workaround for alsa-lib 1.2.13
+#include <alsa/ump_msg.h> // workaround for alsa-lib 1.2.13
 
 struct am2n_seq_common {
 	snd_seq_t *seq;

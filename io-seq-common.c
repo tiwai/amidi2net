@@ -110,6 +110,7 @@ int am2n_seq_common_setup_endpoint(struct am2n_ctx *ctx,
 				   const char *prod_id)
 {
 	snd_ump_endpoint_info_t *ep;
+	int err;
 
 	if (snd_ump_endpoint_info_malloc(&ep))
 		return -ENOMEM;
@@ -129,7 +130,24 @@ int am2n_seq_common_setup_endpoint(struct am2n_ctx *ctx,
 		strlcpy(ctx->ep_name, ep_name, sizeof(ctx->ep_name));
 	if (!*ctx->prod_id)
 		strlcpy(ctx->prod_id, prod_id, sizeof(ctx->prod_id));
-	return snd_seq_create_ump_endpoint(rs->seq, ep, num_groups);
+	err = snd_seq_create_ump_endpoint(rs->seq, ep, num_groups);
+	if (err < 0)
+		return err;
+
+#if SND_LIB_SUBMINOR < 14
+	/* fix up the missing UMP port info bit */
+	{
+		unsigned int caps;
+
+		snd_seq_port_info_alloca(&pinfo);
+		snd_seq_get_port_info(rs->seq, 0, pinfo);
+		caps = snd_seq_port_info_get_capability(pinfo);
+		snd_seq_port_info_set_capability(pinfo, caps |
+						 SND_SEQ_PORT_CAP_UMP_ENDPOINT);
+		snd_seq_set_port_info(rs->seq, 0, pinfo);
+	}
+#endif /* < 1.2.14 */
+	return 0;
 }
 
 int am2n_seq_common_setup_blocks(struct am2n_ctx *ctx,
