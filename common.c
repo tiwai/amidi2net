@@ -752,6 +752,22 @@ static void swap_ump_bytes(void *buf, int words)
 		*ump = htonl(*ump);
 }
 
+/*
+ * Try to recover with retransmit request
+ */
+static void try_retransmit_request(struct ump_session *session)
+{
+	struct am2n_ctx *ctx = session->ctx;
+	unsigned short seqno = session->seqno_recv + 1;
+
+	debug("missing packet, retransmit request #%d, seqno = %d",
+	      session->missing, seqno);
+	send_retransmit_req(session, seqno);
+	session->missing_timeout =
+		get_timeout_msec(ctx, ctx->config->retransmit_timeout);
+	session->missing++;
+}
+
 /* Parse UMP data packet(s) read from the network and process it;
  * input is the UMP data in host byte-order
  */
@@ -817,8 +833,16 @@ static int session_read_ump(struct ump_session *session,
 	}
 
 	/* One of packets missing */
+	/* If the seqno skips too much, try retransmit request */
+	if (!session->missing &&
+	    seqno_diff(seqno, session->seqno_recv) > ctx->config->tolerance) {
+		try_retransmit_request(session);
+		return 0;
+	}
+
 	/* If this the highest seqno, record it */
 	if (seqno_diff(seqno, session->seqno_recv_highest) > 0)
+
 		session->seqno_recv_highest = seqno;
 	pending_buffer_push(session, seqno, ump, plen);
 
@@ -1231,7 +1255,6 @@ static int submit_ump_data(struct ump_session *session,
 static void process_session_timeout(struct ump_session *session)
 {
 	struct am2n_ctx *ctx = session->ctx;
-	unsigned short seqno;
 
 	/* A packet was missing and its timeout is expired? */
 	if (session->missing &&
@@ -1244,13 +1267,7 @@ static void process_session_timeout(struct ump_session *session)
 		}
 
 		/* Try to recover with retransmit request */
-		seqno = session->seqno_recv + 1;
-		debug("missing packet, retransmit request #%d, seqno = %d",
-		      session->missing - 1, seqno);
-		session->missing++;
-		send_retransmit_req(session, seqno);
-		session->missing_timeout =
-			get_timeout_msec(ctx, ctx->config->retransmit_timeout);
+		try_retransmit_request(session);
 		return;
 	}
 
