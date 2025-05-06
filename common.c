@@ -66,6 +66,16 @@ static int send_invitation_reply_accept(struct ump_session *session)
 	return send_session_msg(session, buf, len * 4);
 }
 
+/* Send "Session Reset" message */
+static int send_session_reset(struct ump_session *session)
+{
+	unsigned char buf[8];
+
+	add_signature(buf);
+	cmd_fill_session_reset(buf + 4);
+	return send_session_msg(session, buf, 8);
+}
+
 /* Send "Session Reset Reply" message */
 static int send_session_reset_reply(struct ump_session *session)
 {
@@ -1106,20 +1116,10 @@ static int process_session_cmd(struct am2n_ctx *ctx,
 
 		case UMP_NET_RETRANSMIT_ERR:
 			if (session && session->missing > 1) {
-				if (ctx->config->strict_retransmit) {
-					debug("can't receive retransmission, quitting");
-					send_bye(sock, addr, addr_size,
-						 UMP_NET_BYE_REASON_PACKET_MISSING);
-					ctx->close_session(ctx, session);
-					session = NULL;
-					break;
-				}
-
-				/* OK, let's give up and reset pending buffer */
-				debug("can't receive retransmit, giving up and proceed");
-				session->missing = 0;
-				session->seqno_recv = session->seqno_recv_highest;
-				pending_buffer_clear(session);
+				/* give up, request the session reset and scratch out */
+				debug("can't receive retransmit, giving up and sending reset");
+				send_session_reset(session);
+				reset_session(session);
 				break;
 			}
 			break;
@@ -1237,11 +1237,9 @@ static void process_session_timeout(struct ump_session *session)
 	if (session->missing &&
 	    session->missing_timeout >= ctx->tstamp) {
 		if (session->missing > ctx->config->max_missing_retry) {
-			debug("missing packet, unrecoverable, bye");
-			send_bye(session->sock, &session->addr,
-				 session->addr_size,
-				 UMP_NET_BYE_REASON_PACKET_MISSING);
-			ctx->close_session(ctx, session);
+			debug("still missing packet, reset session");
+			send_session_reset(session);
+			reset_session(session);
 			return;
 		}
 

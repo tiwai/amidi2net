@@ -8,7 +8,6 @@ struct am2n_config {
 	unsigned int fec_count;			/* number of FEC data */
 	bool ipv6;				/* enable IPv6 */
 	bool passthrough;			/* don't handle UMP stream messages */
-	bool strict_retransmit;			/* don't allow retransmit errors */
 	unsigned int input_buffer_size;		/* input pending buffer size (in words) */
 	unsigned int output_buffer_size;	/* output cache buffer size (in words) */
 
@@ -63,7 +62,6 @@ enum {
 	OPT_FAIL_TEST,
 	OPT_FAIL_TEST_MODE,
 	OPT_PASSTHROUGH,
-	OPT_STRICT_RETRANSMIT,
 	OPT_INPUT_BUFFER_SIZE,
 	OPT_OUTPUT_BUFFER_SIZE,
 };
@@ -85,7 +83,6 @@ enum {
 	{"fail-test", 1, 0, OPT_FAIL_TEST},				\
 	{"fail-test-mode", 1, 0, OPT_FAIL_TEST_MODE},			\
 	{"passthrough", 0, 0, OPT_PASSTHROUGH},				\
-	{"strict-retransmit", 0, 0, OPT_STRICT_RETRANSMIT},		\
 	{"input-buffer-size", 1, 0, OPT_INPUT_BUFFER_SIZE},		\
 	{"output-buffer-size", 1, 0, OPT_OUTPUT_BUFFER_SIZE},		\
 	{"debug", 0, 0, OPT_DEBUG}
@@ -123,7 +120,6 @@ enum {
 	"  --fail-test=<N>: simulate packet failure at random 1/N\n" \
 	"  --fail-test-mode=<MODE>: packet failure test mode (0-4)\n" \
 	"  --passthrough: don't handle UMP stream messages\n" \
-	"  --strict-retransmit: don't allow retransmit errors\n" \
 	"  --input-buffer-size=<N>: input pending buffer size (in words)\n" \
 	"  --output-buffer-size=<N>: output cache buffer size (in words)\n" \
 	"  -d,--debug: enable debug\n"

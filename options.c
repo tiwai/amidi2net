@@ -9,7 +9,6 @@
 void am2n_config_init(struct am2n_config *config)
 {
 	config->fec_count = 3;			/* default FEC enablement */
-	config->strict_retransmit = false;
 	config->input_buffer_size = 128;
 	config->output_buffer_size = 64;
 	config->liveness_timeout = 5000;	/* default server ping timeout */
@@ -132,9 +131,6 @@ int am2n_config_parse_option(struct am2n_config *config,
 		return 1;
 	case OPT_PASSTHROUGH:
 		config->passthrough = true;
-		return 1;
-	case OPT_STRICT_RETRANSMIT:
-		config->strict_retransmit = true;
 		return 1;
 	case OPT_INPUT_BUFFER_SIZE:
 		config->input_buffer_size = atoi(optarg);
