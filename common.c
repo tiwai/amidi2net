@@ -476,7 +476,7 @@ static int ump_output_cache_read(const struct ump_output_cache *cache,
  * very few, so I kept as is for now.
  */
 
-static int init_pending_buffer(struct ump_session *session,
+static int pending_buffer_init(struct ump_session *session,
 			       unsigned int size)
 {
 	session->pending_buffer.buffer = calloc(size, sizeof(uint32_t));
@@ -489,14 +489,14 @@ static int init_pending_buffer(struct ump_session *session,
 	return 0;
 }
 
-static void free_pending_buffer(struct ump_session *session)
+static void pending_buffer_free(struct ump_session *session)
 {
 	free(session->pending_buffer.buffer);
 	session->pending_buffer.buffer = NULL;
 }
 
 /* Clear pending buffer */
-static void clear_pending_buffer(struct ump_session *session)
+static void pending_buffer_clear(struct ump_session *session)
 {
 	session->pending_buffer.filled = 0;
 }
@@ -514,7 +514,7 @@ static inline unsigned char pb_len(uint32_t v)
 }
 
 /* Reduce the old entries in the pending buffer until the given size freed */
-static void reduce_pending_buffer(struct ump_session *session,
+static void pending_buffer_reduce(struct ump_session *session,
 				  int size)
 {
 	struct ump_pending_buffer *pb = &session->pending_buffer;
@@ -538,7 +538,7 @@ static void reduce_pending_buffer(struct ump_session *session,
 }
 
 /* Purge pending buffer if all filled events are expired */
-static void purge_pending_buffer(struct ump_session *session,
+static void pending_buffer_purge(struct ump_session *session,
 				 unsigned short seqno)
 {
 	struct ump_pending_buffer *pb = &session->pending_buffer;
@@ -560,7 +560,7 @@ static void purge_pending_buffer(struct ump_session *session,
 }
 
 /* Push a UMP packet to the pending buffer with the given seqno */
-static int push_pending_buffer(struct ump_session *session,
+static int pending_buffer_push(struct ump_session *session,
 			       unsigned short seqno,
 			       const uint32_t *ump,
 			       int len)
@@ -574,7 +574,7 @@ static int push_pending_buffer(struct ump_session *session,
 		return -1;
 
 	if (pb->buffer_size - pb->filled < len + 1) {
-		reduce_pending_buffer(session, len + 1);
+		pending_buffer_reduce(session, len + 1);
 		if (pb->buffer_size - pb->filled < len + 1)
 			return -1;
 	}
@@ -590,7 +590,7 @@ static int push_pending_buffer(struct ump_session *session,
 /* Get UMP data of the given seqno from the pending buffer;
  * return NULL if not found
  */
-static uint32_t *peek_pending_buffer(struct ump_pending_buffer *pb,
+static uint32_t *pending_buffer_peek(struct ump_pending_buffer *pb,
 				     unsigned short seqno,
 				     int *lenp)
 {
@@ -610,7 +610,7 @@ static uint32_t *peek_pending_buffer(struct ump_pending_buffer *pb,
 }
 
 /* Drop the previously peeked UMP data from the pending buffer */
-static void drop_pending_buffer(struct ump_pending_buffer *pb,
+static void pending_buffer_drop(struct ump_pending_buffer *pb,
 				uint32_t *p, int len)
 {
 	int rest = pb->filled - len - (p - pb->buffer);
@@ -660,7 +660,7 @@ static void reset_session(struct ump_session *session)
 					 ctx->config->liveness_timeout);
 	else
 		session->ping_timeout = (uint64_t)-1;
-	clear_pending_buffer(session);
+	pending_buffer_clear(session);
 }
 
 /* Open a session (for server) */
@@ -677,7 +677,7 @@ open_server_session(struct am2n_ctx *core, struct ump_sock *sock,
 	session = calloc(1, sizeof(*session));
 	if (!session)
 		return NULL;
-	if (init_pending_buffer(session, ctx->core.config->input_buffer_size)) {
+	if (pending_buffer_init(session, ctx->core.config->input_buffer_size)) {
 		free(session);
 		return NULL;
 	}
@@ -718,7 +718,7 @@ static void close_server_session(struct am2n_ctx *_ctx,
 		session->next->prev = session->prev;
 	else
 		ctx->last_session = session->prev;
-	free_pending_buffer(session);
+	pending_buffer_free(session);
 	free(session);
 }
 
@@ -765,7 +765,7 @@ static int session_read_ump(struct ump_session *session,
 			return -1;
 		session->seqno_recv = seqno;
 		session->seqno_recv_highest = seqno;
-		purge_pending_buffer(session, seqno);
+		pending_buffer_purge(session, seqno);
 		return 0;
 	}
 
@@ -784,16 +784,16 @@ static int session_read_ump(struct ump_session *session,
 		/* If this is the latest packet, go out gracefully */
 		if (seqno_diff(seqno, session->seqno_recv_highest) >= 0) {
 			session->seqno_recv_highest = seqno;
-			purge_pending_buffer(session, seqno);
+			pending_buffer_purge(session, seqno);
 			return 0;
 		}
 
 		/* Try to handle pending inputs as much as possible */
-		while ((p = peek_pending_buffer(&session->pending_buffer,
+		while ((p = pending_buffer_peek(&session->pending_buffer,
 						++seqno, &len)) != NULL) {
 			if (write_ump_packet(ctx, p, len) < 0)
 				return -1;
-			drop_pending_buffer(&session->pending_buffer, p, len);
+			pending_buffer_drop(&session->pending_buffer, p, len);
 			session->seqno_recv = seqno;
 			if (seqno == session->seqno_recv_highest)
 				return 0; /* all done */
@@ -810,7 +810,7 @@ static int session_read_ump(struct ump_session *session,
 	/* If this the highest seqno, record it */
 	if (seqno_diff(seqno, session->seqno_recv_highest) > 0)
 		session->seqno_recv_highest = seqno;
-	push_pending_buffer(session, seqno, ump, plen);
+	pending_buffer_push(session, seqno, ump, plen);
 
 	/* Set the timeout if not set up yet */
 	if (!session->missing) {
@@ -1119,7 +1119,7 @@ static int process_session_cmd(struct am2n_ctx *ctx,
 				debug("can't receive retransmit, giving up and proceed");
 				session->missing = 0;
 				session->seqno_recv = session->seqno_recv_highest;
-				clear_pending_buffer(session);
+				pending_buffer_clear(session);
 				break;
 			}
 			break;
@@ -1638,7 +1638,7 @@ struct am2n_client_ctx *am2n_client_init(const void *addr,
 	session->ctx = &ctx->core;
 	session->state = STATE_INVITATION;
 
-	if (init_pending_buffer(session, ctx->core.config->input_buffer_size))
+	if (pending_buffer_init(session, ctx->core.config->input_buffer_size))
 		goto error;
 
 	session->output_cache = ump_output_cache_init(ctx->core.config->output_buffer_size);
@@ -1664,7 +1664,7 @@ void am2n_client_free(struct am2n_client_ctx *ctx)
 	if (ctx->session) {
 		if (ctx->session->output_cache)
 			ump_output_cache_free(ctx->session->output_cache);
-		free_pending_buffer(ctx->session);
+		pending_buffer_free(ctx->session);
 		free(ctx->session);
 	}
 	free(ctx);
