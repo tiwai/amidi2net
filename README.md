@@ -151,9 +151,9 @@ Authentication Options
 ----------------------
 
 For running the server with the authentication, pass a secret string
-via --secret (or `-x`) option.  (Yeah I know it's no secret at all :)
+via `--secret` (or `-x`) option.  (Yeah I know it's no secret at all :)
 
-For the user authentication, pass the user name via '--user' (or `-u`)
+For the user authentication, pass the user name via `--user` (or `-u`)
 option together with the password via `--secret` option.
 
 So far, you can't use two different authentication mechanisms, but
@@ -258,7 +258,7 @@ Zero-Length UMP
 
 Both server or client will send a zero-length UMP message when it
 doesn't receive any UMP input from the I/O backend for a certain
-period (hence it decides as idle).  This period is sepcified via
+period (hence it decides as idle).  This period is specified via
 `--zerolength-ump-timeout` option, and its default is 100 msec.
 The zero-length UMP messages are repeated at least for the number of
 FEC data.
