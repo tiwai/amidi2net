@@ -50,7 +50,7 @@ static const struct option long_opts[] = {
 	{"user", 1, 0, 'u'},
 	{"secret", 1, 0, 'x'},
 #endif
-	SERVER_CONFIG_GETOPT_LONG,
+	CLIENT_CONFIG_GETOPT_LONG,
 #ifdef SUPPORT_MDNS
 	{"lookup", 1, 0, 'l'},
 #endif
