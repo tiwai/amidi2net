@@ -152,6 +152,9 @@ int am2n_config_parse_option(struct am2n_config *config,
 			return -1;
 		}
 		return 1;
+	case OPT_TOLERANCE:
+		config->tolerance = atoi(optarg);
+		return 1;
 	case OPT_DEBUG:
 		enable_debug++;
 		return 1;
