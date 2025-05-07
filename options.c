@@ -40,6 +40,7 @@ void am2n_config_debug_print(const struct am2n_config *config, bool server)
 		debug("* ping retry timeout: %d", config->ping_timeout);
 		debug("* max ping retry: %d", config->max_ping_retry);
 	}
+	debug("* missing packet tolerance: %d", config->tolerance);
 	debug("* missing packet timeout: %d", config->missing_pkt_timeout);
 	debug("* retransmit timeout: %d", config->retransmit_timeout);
 	debug("* zero-length UMP timeout: %d", config->zerolength_ump_timeout);
@@ -48,6 +49,7 @@ void am2n_config_debug_print(const struct am2n_config *config, bool server)
 		debug("* max number of sessions: %d", config->max_sessions);
 	} else {
 		debug("* invitation timeout: %d", config->invitation_timeout);
+		debug("* invitation pending timeout: %d", config->invitation_pending_timeout);
 		debug("* max invitation retry: %d", config->max_invitation_retry);
 	}
 

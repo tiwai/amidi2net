@@ -141,6 +141,7 @@ enum {
 #define CLIENT_CONFIG_USAGE \
 	COMMON_CONFIG_USAGE \
 	"  --invitation-timeout=<MSEC>: timeout for invitation request (in msec)\n" \
+	"  --invitation-pending-timeout=<MSEC>: extended timeout after receiving pending reply (in msec)\n" \
 	"  --max-invitation-retry=<NUM:> max retries of invitations\n"
 
 /* Configuration setup */
