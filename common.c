@@ -755,13 +755,14 @@ static void swap_ump_bytes(void *buf, int words)
 /*
  * Try to recover with retransmit request
  */
-static void try_retransmit_request(struct ump_session *session)
+static void try_retransmit_request(struct ump_session *session,
+				   const char *reason)
 {
 	struct am2n_ctx *ctx = session->ctx;
 	unsigned short seqno = session->seqno_recv + 1;
 
-	debug("missing packet, retransmit request #%d, seqno = %d",
-	      session->missing, seqno);
+	debug("missing packet, retransmit request #%d due to %s, seqno = %d",
+	      session->missing, reason, seqno);
 	send_retransmit_req(session, seqno);
 	session->missing_timeout =
 		get_timeout_msec(ctx, ctx->config->retransmit_timeout);
@@ -826,6 +827,8 @@ static int session_read_ump(struct ump_session *session,
 		}
 
 		/* Still missing packet present, set up the timeout for resubmit request */
+		debug2("still missing pkt, setting first timeout %d",
+		       ctx->config->missing_pkt_timeout);
 		session->missing = 1;
 		session->missing_timeout =
 			get_timeout_msec(ctx, ctx->config->missing_pkt_timeout);
@@ -836,7 +839,7 @@ static int session_read_ump(struct ump_session *session,
 	/* If the seqno skips too much, try retransmit request */
 	if (!session->missing &&
 	    seqno_diff(seqno, session->seqno_recv) > ctx->config->tolerance) {
-		try_retransmit_request(session);
+		try_retransmit_request(session, "seqno-jump");
 		return 0;
 	}
 
@@ -848,6 +851,8 @@ static int session_read_ump(struct ump_session *session,
 
 	/* Set the timeout if not set up yet */
 	if (!session->missing) {
+		debug2("missing pkt, setting first timeout %d",
+		       ctx->config->missing_pkt_timeout);
 		session->missing = 1;
 		session->missing_timeout =
 			get_timeout_msec(ctx, ctx->config->missing_pkt_timeout);
@@ -1258,16 +1263,16 @@ static void process_session_timeout(struct ump_session *session)
 
 	/* A packet was missing and its timeout is expired? */
 	if (session->missing &&
-	    session->missing_timeout >= ctx->tstamp) {
+	    session->missing_timeout <= ctx->tstamp) {
 		if (session->missing > ctx->config->max_missing_retry) {
-			debug("still missing packet, reset session");
+			debug2("still missing packet, reset session");
 			send_session_reset(session);
 			reset_session(session);
 			return;
 		}
 
 		/* Try to recover with retransmit request */
-		try_retransmit_request(session);
+		try_retransmit_request(session, "timeout");
 		return;
 	}
 
@@ -1898,12 +1903,17 @@ static int do_fail_test(struct ump_sock *sock, const void *addr,
 		if (prev_buf_size) {
 			debug("simulate packet swap-B: size=%d, %02x:%02x:%02x:%02x",
 			      size, prev_buf[4], prev_buf[5], prev_buf[6], prev_buf[7]);
+			debug2("send_msg: size=%d, %02x:%02x:%02x:%02x",
+			       size, buf[4], buf[5], buf[6], buf[7]);
 			ret = sendto(sock->sockfd, buf, size, 0,
 				     addr, addr_size);
 			if (ret < 0) {
 				prev_buf_size = 0;
 				return ret;
 			}
+
+			debug2("send_msg: size=%d, %02x:%02x:%02x:%02x",
+			       size, prev_buf[4], prev_buf[5], prev_buf[6], prev_buf[7]);
 			ret = sendto(prev_sockfd, prev_buf, prev_buf_size, 0,
 				     (void *)&prev_addr, prev_addr_size);
 			prev_buf_size = 0;
