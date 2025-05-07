@@ -338,6 +338,7 @@ void am2n_set_auth(struct am2n_ctx *ctx, const char *username,
 	}
 }
 
+/* Ask a username via prompt and fill into the given buffer */
 int ask_username_prompt(char *buf, int size)
 {
 	char *p;
@@ -354,6 +355,7 @@ int ask_username_prompt(char *buf, int size)
 	return 0;
 }
 
+/* Ask a secret string or password via prompt and fill into the given buffer */
 int ask_secret_prompt(const char *prompt, char *buf, int size)
 {
 	char *s = getpass(prompt);
@@ -362,6 +364,34 @@ int ask_secret_prompt(const char *prompt, char *buf, int size)
 		return -1;
 	strlcpy(buf, s, size);
 	return 0;
+}
+
+/* Return the verbose reason of the authentication request */
+static const char *invalid_auth_reason(unsigned char state)
+{
+	switch (state) {
+	case AUTH_STATE_FIRST:
+		return "First Authentication request";
+	case AUTH_STATE_RETRY:
+		return "Incorrect digest";
+	default:
+		return "Unknown";
+	}
+}
+
+/* Return the verbose reason of the user-authentication request */
+static const char *invalid_user_auth_reason(unsigned char state)
+{
+	switch (state) {
+	case AUTH_STATE_FIRST:
+		return "First Authentication request";
+	case AUTH_STATE_RETRY:
+		return "Incorrect digest";
+	case AUTH_STATE_USER_NOT_FOUND:
+		return "User not found";
+	default:
+		return "Unknown";
+	}
 }
 #endif /* SUPPORT_AUTH */
 
@@ -1135,7 +1165,9 @@ static int process_session_cmd(struct am2n_ctx *ctx,
 			if (ctx->role == ROLE_CLIENT &&
 			    ctx->auth_support & UMP_NET_CAPS_INVITATION_AUTH) {
 				if (cmd[3]) {
-					error("Invalid auth: state = %d", cmd[3]);
+					error("Invalid auth: state = %d (%s)",
+					      cmd[3],
+					      invalid_auth_reason(cmd[3]));
 					return -1;
 				}
 				debug("retry invitation with auth");
@@ -1153,7 +1185,9 @@ static int process_session_cmd(struct am2n_ctx *ctx,
 			if (ctx->role == ROLE_CLIENT &&
 			    ctx->auth_support & UMP_NET_CAPS_INVITATION_USER_AUTH) {
 				if (cmd[3]) {
-					error("Invalid user auth: state = %d", cmd[3]);
+					error("Invalid user auth: state = %d (%s)",
+					      cmd[3],
+					      invalid_user_auth_reason(cmd[3]));
 					return -1;
 				}
 				debug("retry invitation with user-auth");
