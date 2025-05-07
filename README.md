@@ -74,7 +74,7 @@ client 128: 'amidi2net-server' [type=user,UMP-MIDI1,pid=20256]
 client 129: 'Virtual Keyboard' [type=user,pid=20265]
     0 'Virtual Keyboard'
 
-% aconnect 128:0 129:0
+% aconnect 129:0 128:0
 ```
 
 For composing a UMP Endpoint Info, this mode needs a UMP Endpoint name
