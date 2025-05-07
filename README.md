@@ -211,11 +211,76 @@ The `amidi2net-list` program quits after a certain time out, as
 default in 1.5 seconds.  You can change the time out value via
 `--timeout` (or `-t`) option, specified in milli seconds.
 
-Other Options for Server
-------------------------
+Session Limits
+--------------
 
-The max number of sessions can be specified via `--sessions` (or `-s`)
-option.  The default is 8.
+The max number of sessions that can be connected at the same time to a
+single host can be specified via `--sessions` (or `-s`) option.
+The default value is 8.
+
+Session Heartbeat
+-----------------
+
+For verifying whether clients are still alive, the server sends a Ping
+command periodically to each client.  This period is specified via
+`--liveness-timeout` option, and its default is 5000 msec.
+When a client doesn't reply to a ping, the server retries the Ping
+again after a certain timeout.  This timeout is specified via
+`--ping-timeout` option, and its default is 100 msec.
+When a client still doesn't reply to Pings and the failures reach to
+the upper limit, the server terminates the session.  This threshold is
+defined via `--max-ping-retry` option, and its default is 3.
+
+Packet Retransmit Request
+-------------------------
+
+When server or client detects one or more packets missing by checking
+the seqno series, it may send a Retransmit Request command.  This
+happens either when the seqno jumps too high or when the missing
+packet isn't delivered after a certain period.  The former threshold
+is specified via `--tolerance` option and its default is 8.
+The latter timeout is specified via `--missing-pkt-timeout` and its
+default is 30 msec.
+
+When a retransmit request is sent, it waits for the Retransmit Request
+Reply command.  If the reply doesn't arrive for a certain time,
+another retransmit request is sent.  This timeout is specified via
+`--retransmit-timeout` option and its default is 100 msec.
+The retransmit request may repeat until the upper limit, specified via
+`--max-missing-retry`, and its default is 5.
+
+When server or client still doesn't get the missing packet even after
+the upper limit, it tries to reset the session by sending a Session
+Reset command.
+
+Zero-Length UMP
+---------------
+
+Both server or client will send a zero-length UMP message when it
+doesn't receive any UMP input from the I/O backend for a certain
+period (hence it decides as idle).  This period is sepcified via
+`--zerolength-ump-timeout` option, and its default is 100 msec.
+The zero-length UMP messages are repeated at least for the number of
+FEC data.
+
+Invitation Retry
+----------------
+
+After sending the Invitation Request command to the host, a client
+waits for a certain period, and if there is no reply, it retries to
+send another Invitation Request command.  This period is defined via
+`--invitation-timeout` option, and its default is 100 msec.
+When the failures reach to the upper limit, client gives up and
+quits.  This threshold is defined via `--max-invitation-retry` option
+and its default is 3.
+
+Input and Output Buffer Sizes
+-----------------------------
+
+The sizes of the input pending buffer and the output cache buffer can
+be specified via `--input-buffer-size` and `--output-buffer-size`
+options, respectively.  The default size of the input pending buffer
+is 128, while the default size of the output cache buffer is 64.
 
 Testing Packet Failures
 -----------------------
@@ -235,13 +300,6 @@ There are several test modes available, and it can be specified via
 - 3 and 4 are similarly to drop a packet and to drop FEC packets but
   applied at receiving packets.
   (There is no swap-test at receiving.)
-
-Yet More Options
-----------------
-
-Some detailed configuration options for fine tunings (such as the
-timeout for zero-length UMP message) are available; see the help usage
-of each program.
 
 Debugging
 ---------
