@@ -150,22 +150,22 @@ IPv4.
 Authentication Options
 ----------------------
 
-For running the server with the authentication, pass a secret string
-via `--secret` (or `-x`) option.  (Yeah I know it's no secret at all :)
+When you pass `--auth` option to client or server, it will ask a
+prompt for the secret string for the authentication.
+When you pass `--user-auth` option, it will ask a user name and a
+password prompt for the user-authentication, instead.
 
-For the user authentication, pass the user name via `--user` (or `-u`)
-option together with the password via `--secret` option.
+Alternatively, you can pass the secret string via `--secret` (or `-x`)
+option, and the user name via `--user` (or `-u`) option, too.
+(Yeah I know it's no secret at all :)
 
 So far, you can't use two different authentication mechanisms, but
 enable only one of two.
 
-Without `--secret` option, the server runs without authentication.
+Without those options above, the server runs without authentication.
 
 The server has also `--auth-forced` option to disallow the fallback
 when the given authentication doesn't match.
-
-In the client side, pass the same options (`--secret` and `--user`)
-for authentication.  No prompt is implemented yet.
 
 Forward Error Correction (FEC)
 ------------------------------

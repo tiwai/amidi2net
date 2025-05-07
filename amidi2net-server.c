@@ -4,6 +4,7 @@
 
 #include "amidi2net.h"
 #include "options.h"
+#include "packet.h"
 #include <getopt.h>
 
 #define DEFAULT_EP_NAME		"amidi2net-server"
@@ -135,6 +136,28 @@ int main(int argc, char **argv)
 	}
 
 #ifdef SUPPORT_AUTH
+	if (config.auth_support) {
+		static char tmp_username[64];
+		static char tmp_secret[64];
+
+		if (!username &&
+		    (config.auth_support & UMP_NET_CAPS_INVITATION_USER_AUTH)) {
+			if (ask_username_prompt(tmp_username,
+						sizeof(tmp_username)) < 0)
+				return 1;
+			if (ask_secret_prompt("Password: ", tmp_secret,
+					      sizeof(tmp_secret)) < 0)
+				return 1;
+			username = tmp_username;
+			secret = tmp_secret;
+		} else if (!secret &&
+			   (config.auth_support & UMP_NET_CAPS_INVITATION_AUTH)) {
+			if (ask_secret_prompt("Secret: ", tmp_secret,
+					      sizeof(tmp_secret)) < 0)
+				return 1;
+			secret = tmp_secret;
+		}
+	}
 	am2n_set_auth(&server->core, username, secret, auth_forced);
 #endif
 

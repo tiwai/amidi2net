@@ -8,6 +8,7 @@ struct am2n_config {
 	unsigned int fec_count;			/* number of FEC data */
 	bool ipv6;				/* enable IPv6 */
 	bool passthrough;			/* don't handle UMP stream messages */
+	unsigned int auth_support;		/* authentication caps */
 	unsigned int input_buffer_size;		/* input pending buffer size (in words) */
 	unsigned int output_buffer_size;	/* output cache buffer size (in words) */
 	unsigned int tolerance;			/* # of UMPs before triggering retransmit request */
@@ -68,6 +69,8 @@ enum {
 	OPT_INPUT_BUFFER_SIZE,
 	OPT_OUTPUT_BUFFER_SIZE,
 	OPT_TOLERANCE,
+	OPT_SUPPORT_AUTH,
+	OPT_SUPPORT_USER_AUTH,
 };
 
 #define COMMON_CONFIG_GETOPT_LONG					\
@@ -90,6 +93,8 @@ enum {
 	{"input-buffer-size", 1, 0, OPT_INPUT_BUFFER_SIZE},		\
 	{"output-buffer-size", 1, 0, OPT_OUTPUT_BUFFER_SIZE},		\
 	{"tolerance", 1, 0, OPT_TOLERANCE},				\
+	{"auth", 0, 0, OPT_SUPPORT_AUTH},				\
+	{"user-auth", 0, 0, OPT_SUPPORT_USER_AUTH},			\
 	{"debug", 0, 0, OPT_DEBUG}
 
 #define SERVER_CONFIG_GETOPT	"S:R:H:E:P:G:B:f:6s:d"
@@ -129,6 +134,8 @@ enum {
 	"  --input-buffer-size=<N>: input pending buffer size (in words)\n" \
 	"  --output-buffer-size=<N>: output cache buffer size (in words)\n" \
 	"  --tolerance=<N>: number of UMPs before triggering retransmit request\n" \
+	"  --auth: Use / enable authentication with prompt\n" \
+	"  --user-auth: Use / enable user-authentication with prompt\n" \
 	"  -d,--debug: enable debug\n"
 
 #define SERVER_CONFIG_USAGE	    \

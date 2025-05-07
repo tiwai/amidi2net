@@ -190,6 +190,8 @@ int main(int argc, char **argv)
 	}
 
 #ifdef SUPPORT_AUTH
+	if (config.auth_support && (username || secret))
+		config.auth_support = 0;
 	am2n_set_auth(&client->core, username, secret, false);
 #endif
 

@@ -4,6 +4,7 @@
 
 #include "amidi2net.h"
 #include "options.h"
+#include "packet.h"
 
 /* set up the config with the default values */
 void am2n_config_init(struct am2n_config *config)
@@ -154,6 +155,12 @@ int am2n_config_parse_option(struct am2n_config *config,
 		return 1;
 	case OPT_TOLERANCE:
 		config->tolerance = atoi(optarg);
+		return 1;
+	case OPT_SUPPORT_AUTH:
+		config->auth_support |= UMP_NET_CAPS_INVITATION_AUTH;
+		return 1;
+	case OPT_SUPPORT_USER_AUTH:
+		config->auth_support |= UMP_NET_CAPS_INVITATION_USER_AUTH;
 		return 1;
 	case OPT_DEBUG:
 		enable_debug++;

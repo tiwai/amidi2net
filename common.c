@@ -213,10 +213,20 @@ static int send_invitation_with_auth(struct ump_session *session,
 	struct am2n_ctx *ctx = session->ctx;
 	char buf[64];
 	unsigned char digest[32];
+	char tmp_secret[64];
+	const char *secret;
 	int len = 1;
 
-	if (auth_sha256_digest(digest, session->crypto_nonce, ctx->auth_secret,
-			       strlen((const char *)ctx->auth_secret))) {
+	secret = ctx->auth_secret;
+	if (!secret) {
+		if (ask_secret_prompt("Secret: ", tmp_secret,
+				      sizeof(tmp_secret)) < 0)
+			return -1;
+		secret = tmp_secret;
+	}
+
+	if (auth_sha256_digest(digest, session->crypto_nonce, secret,
+			       strlen(secret))) {
 		error("SHA256 digest creation error");
 		return -1;
 	}
@@ -234,20 +244,36 @@ static int send_invitation_with_user_auth(struct ump_session *session,
 	struct am2n_ctx *ctx = session->ctx;
 	char buf[256];
 	unsigned char digest[32];
+	char tmp_username[64];
+	char tmp_passwd[64];
+	const char *username, *passwd;
 	int len = 1;
 
+	username = ctx->auth_username;
+	if (!username) {
+		if (ask_username_prompt(tmp_username, sizeof(tmp_username)) < 0)
+			return -1;
+		username = tmp_username;
+	}
+
+	passwd = ctx->auth_secret;
+	if (!passwd) {
+		if (ask_secret_prompt("Password: ", tmp_passwd,
+				      sizeof(tmp_passwd)) < 0)
+			return -1;
+		passwd = tmp_passwd;
+	}
+
 	if (user_auth_sha256_digest(digest, session->crypto_nonce,
-				    ctx->auth_username,
-				    strlen(ctx->auth_username),
-				    ctx->auth_secret,
-				    strlen(ctx->auth_secret))) {
+				    username, strlen(username),
+				    passwd, strlen(passwd))) {
 		error("SHA256 digest creation error");
 		return -1;
 	}
 
 	add_signature(buf);
 	len += cmd_fill_invitation_with_user_auth(buf + 4, digest,
-						 ctx->auth_username);
+						  username);
 	assert(len * 4 <= sizeof(buf));
 	return send_session_msg(session, buf, len * 4);
 }
@@ -300,6 +326,8 @@ void am2n_set_auth(struct am2n_ctx *ctx, const char *username,
 		ctx->auth_support = UMP_NET_CAPS_INVITATION_USER_AUTH;
 	else if (secret)
 		ctx->auth_support = UMP_NET_CAPS_INVITATION_AUTH;
+	else
+		ctx->auth_support = ctx->config->auth_support;
 	ctx->auth_forced = forced;
 	ctx->auth_username = username;
 	ctx->auth_secret = secret;
@@ -308,6 +336,32 @@ void am2n_set_auth(struct am2n_ctx *ctx, const char *username,
 		      (ctx->auth_support & UMP_NET_CAPS_INVITATION_USER_AUTH) ?
 		      "user-auth" : "auth");
 	}
+}
+
+int ask_username_prompt(char *buf, int size)
+{
+	char *p;
+
+	printf("User: ");
+	if (!fgets(buf, size, stdin))
+		return -1;
+	for (p = buf; *p; p++) {
+		if (*p == '\n') {
+			*p = 0;
+			break;
+		}
+	}
+	return 0;
+}
+
+int ask_secret_prompt(const char *prompt, char *buf, int size)
+{
+	char *s = getpass(prompt);
+
+	if (!s)
+		return -1;
+	strlcpy(buf, s, size);
+	return 0;
 }
 #endif /* SUPPORT_AUTH */
 

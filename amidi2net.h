@@ -280,6 +280,8 @@ int user_auth_sha256_digest(unsigned char *buf,
 			    int user_len,
 			    const unsigned char *passwd,
 			    int passwd_len);
+int ask_username_prompt(char *buf, int size);
+int ask_secret_prompt(const char *prompt, char *buf, int size);
 #endif
 
 /*
