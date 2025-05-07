@@ -17,7 +17,8 @@ void am2n_config_init(struct am2n_config *config)
 	config->retransmit_timeout = 100;	/* timeout for retransmit request */
 	config->ping_timeout = 100;		/* timeout for ping retry */
 	config->zerolength_ump_timeout = 100;	/* timeout for zero-length UMP */
-	config->invitation_timeout = 100;	/* timeout for invitation request */
+	config->invitation_timeout = 1000;	/* timeout for invitation request */
+	config->invitation_pending_timeout = 10000;	/* longer timeout for invitation pending */
 	config->max_missing_retry = 5;		/* max retries for missing packet recovery */
 	config->max_ping_retry = 3;		/* max retries for ping connection checks */
 	config->max_invitation_retry = 3;	/* max retries of invitations */

@@ -269,7 +269,10 @@ Invitation Retry
 After sending the Invitation Request command to the host, a client
 waits for a certain period, and if there is no reply, it retries to
 send another Invitation Request command.  This period is defined via
-`--invitation-timeout` option, and its default is 100 msec.
+`--invitation-timeout` option, and its default is 1000 msec (1 sec).
+When the client receives an Invitation Reply Pending message, it
+extends the timeout, as default 10000 msec (10 sec).  This extended
+timeout can be specified via `--invitation-pending-timeout` option.
 When the failures reach to the upper limit, client gives up and
 quits.  This threshold is defined via `--max-invitation-retry` option
 and its default is 3.

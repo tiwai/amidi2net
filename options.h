@@ -18,6 +18,7 @@ struct am2n_config {
 	unsigned int ping_timeout;		/* ping retry timeout (in msec) */
 	unsigned int zerolength_ump_timeout;	/* zero-length UMP timeout (in msec) */
 	unsigned int invitation_timeout;	/* timeout for invitation request (in msec) */
+	unsigned int invitation_pending_timeout; /* longer timeout after invitation pending (in msec) */
 
 	unsigned int max_missing_retry;		/* max retries for missing packet recovery */
 	unsigned int max_ping_retry;		/* max retries for ping connection checks */
@@ -57,6 +58,7 @@ enum {
 	OPT_PING_TIMEOUT,
 	OPT_ZEROLENGTH_UMP_TIMEOUT,
 	OPT_INVITATION_TIMEOUT,
+	OPT_INVITATION_PENDING_TIMEOUT,
 	OPT_MAX_MISSING_RETRY,
 	OPT_MAX_PING_RETRY,
 	OPT_MAX_INVITATION_RETRY,
@@ -104,6 +106,7 @@ enum {
 #define CLIENT_CONFIG_GETOPT_LONG					\
 	COMMON_CONFIG_GETOPT_LONG,					\
 	{"invitation-timeout", 1, 0, OPT_INVITATION_TIMEOUT},		\
+	{"invitation-pending-timeout", 1, 0, OPT_INVITATION_PENDING_TIMEOUT}, \
 	{"max-invitation-retry", 1, 0, OPT_MAX_INVITATION_RETRY}
 
 #define COMMON_CONFIG_USAGE \

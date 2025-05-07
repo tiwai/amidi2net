@@ -1066,6 +1066,14 @@ static int process_session_cmd(struct am2n_ctx *ctx,
 			if (ctx->role != ROLE_CLIENT) {
 				if (nak_not_expected(sock, addr, addr_size, cmd))
 					return -1;
+			} else {
+				struct am2n_client_ctx *client =
+					(struct am2n_client_ctx *)ctx;
+
+				/* extend the invitation timeout */
+				client->invitation_timeout =
+					get_timeout_msec(ctx,
+							 ctx->config->invitation_pending_timeout);
 			}
 			break;
 		case UMP_NET_INVITATION_REPLY_AUTH_REQ:
@@ -1745,7 +1753,6 @@ static void process_client_cmd(struct am2n_client_ctx *ctx)
 int am2n_client_handshake(struct am2n_client_ctx *ctx)
 {
 	int retry = 0;
-	uint64_t timeout;
 
 	debug("client handshake starting");
 	update_timestamp(&ctx->core);
@@ -1756,19 +1763,23 @@ int am2n_client_handshake(struct am2n_client_ctx *ctx)
 	}
 
 	update_timestamp(&ctx->core);
-	timeout = get_timeout_msec(&ctx->core, ctx->core.config->invitation_timeout);
+	ctx->invitation_timeout =
+		get_timeout_msec(&ctx->core, ctx->core.config->invitation_timeout);
 
 	while (ctx->session->state == STATE_INVITATION) {
 		struct pollfd pollfd = ctx->sock.pfd;
+		unsigned int poll_timeout;
 
-		if (poll(&pollfd, 1, get_poll_timeout(&ctx->core, timeout)) < 0) {
+		poll_timeout =  get_poll_timeout(&ctx->core,
+						 ctx->invitation_timeout);
+		if (poll(&pollfd, 1, poll_timeout) < 0) {
 			perror("poll");
 			return -1;
 		}
 		update_timestamp(&ctx->core);
 		if (pollfd.revents & POLLIN)
 			process_client_cmd(ctx);
-		if (ctx->core.tstamp > timeout) {
+		if (ctx->core.tstamp > ctx->invitation_timeout) {
 			if (++retry >= ctx->core.config->max_invitation_retry) {
 				error("Too many invitation retries");
 				return -1;
@@ -1778,8 +1789,9 @@ int am2n_client_handshake(struct am2n_client_ctx *ctx)
 				error("Send invitation failed");
 				return -1;
 			}
-			timeout = get_timeout_msec(&ctx->core,
-						   ctx->core.config->invitation_timeout);
+			ctx->invitation_timeout =
+				get_timeout_msec(&ctx->core,
+						 ctx->core.config->invitation_timeout);
 		}
 	}
 

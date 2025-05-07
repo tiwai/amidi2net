@@ -210,6 +210,8 @@ struct am2n_client_ctx {
 	struct ump_output_cache *output_cache;	/* output cache */
 
 	struct ump_sock sock;
+
+	uint64_t invitation_timeout;
 };
 
 /*
