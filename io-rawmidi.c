@@ -5,6 +5,7 @@
 #include "amidi2net.h"
 #include "options.h"
 #include <alsa/asoundlib.h>
+#include <alsa/ump_msg.h>
 
 struct am2n_rawmidi {
 	snd_ump_t *ump_in;

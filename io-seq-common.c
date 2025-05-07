@@ -138,6 +138,7 @@ int am2n_seq_common_setup_endpoint(struct am2n_ctx *ctx,
 	/* fix up the missing UMP port info bit */
 	{
 		unsigned int caps;
+		snd_seq_port_info_t *pinfo;
 
 		snd_seq_port_info_alloca(&pinfo);
 		snd_seq_get_port_info(rs->seq, 0, pinfo);
