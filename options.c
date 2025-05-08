@@ -7,13 +7,16 @@
 #include "packet.h"
 
 /* set up the config with the default values */
-void am2n_config_init(struct am2n_config *config)
+void am2n_config_init(struct am2n_config *config, bool server)
 {
 	config->fec_count = 3;			/* default FEC enablement */
 	config->input_buffer_size = 128;
 	config->output_buffer_size = 64;
 	config->tolerance = 8;
 	config->liveness_timeout = 5000;	/* default server ping timeout */
+	/* a bit longer than server for avoiding unnecessarily ping */
+	if (!server)
+		config->liveness_timeout += 500;
 	config->missing_pkt_timeout = 30;	/* timeout for missing packet */
 	config->retransmit_timeout = 100;	/* timeout for retransmit request */
 	config->ping_timeout = 100;		/* timeout for ping retry */

@@ -49,7 +49,7 @@ int main(int argc, char **argv)
 	struct am2n_mdns_ctx *mdns;
 	int c, opt_idx, err;
 
-	am2n_config_init(&config);
+	am2n_config_init(&config, true);
 	config.ep_name = DEFAULT_EP_NAME;
 	config.prod_id = DEFAULT_PROD_ID;
 

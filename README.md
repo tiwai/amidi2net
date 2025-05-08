@@ -232,15 +232,21 @@ The default value is 8.
 Session Heartbeat
 -----------------
 
-For verifying whether clients are still alive, the server sends a Ping
-command periodically to each client.  This period is specified via
-`--liveness-timeout` option, and its default is 5000 msec.
-When a client doesn't reply to a ping, the server retries the Ping
-again after a certain timeout.  This timeout is specified via
-`--ping-timeout` option, and its default is 100 msec.
-When a client still doesn't reply to Pings and the failures reach to
-the upper limit, the server terminates the session.  This threshold is
-defined via `--max-ping-retry` option, and its default is 3.
+For verifying whether the connected server or client is still alive,
+the server or client sends a Ping command periodically to the
+connected client or server.  This period is specified via
+`--liveness-timeout` option, and its default is 5000 msec for servers
+and 5500 msec for clients.  Clients have a slightly longer timeout as
+default for avoiding doubly pings from the both side.
+
+When the connected host or client doesn't reply to a ping, the sender
+retries the Ping again after a certain timeout.  This timeout is
+specified via `--ping-timeout` option, and its default is 100 msec.
+
+When the connected hot or client still doesn't reply and the failures
+reach to the upper limit, the sender terminates the session.  This
+threshold is defined via `--max-ping-retry` option, and its default is
+3.
 
 Packet Retransmit Request
 -------------------------

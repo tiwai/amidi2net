@@ -105,7 +105,7 @@ int main(int argc, char **argv)
 	const char *lookup = NULL;
 #endif
 
-	am2n_config_init(&config);
+	am2n_config_init(&config, false);
 	config.ep_name = DEFAULT_EP_NAME;
 	config.prod_id = DEFAULT_PROD_ID;
 

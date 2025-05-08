@@ -772,12 +772,8 @@ static void reset_session(struct ump_session *session)
 	session->fec_count = 0;
 	session->missing = 0;
 	session->ping_req = 0;
-	if (ctx->role == ROLE_SERVER)
-		session->ping_timeout =
-			get_timeout_msec(ctx,
-					 ctx->config->liveness_timeout);
-	else
-		session->ping_timeout = (uint64_t)-1;
+	session->ping_timeout =
+		get_timeout_msec(ctx, ctx->config->liveness_timeout);
 	pending_buffer_clear(session);
 }
 
@@ -1824,6 +1820,10 @@ static int calculate_client_timeout(struct am2n_client_ctx *ctx)
 	    session->missing_timeout < timeout)
 		timeout = session->missing_timeout;
 
+	if (session->ping_timeout >= tstamp &&
+	    session->ping_timeout < timeout)
+		timeout = session->ping_timeout;
+
 	return get_poll_timeout(&ctx->core, timeout);
 }
 
@@ -1854,6 +1854,11 @@ static void process_client_cmd(struct am2n_client_ctx *ctx)
 	n = receive_msg(&ctx->sock, buf, sizeof(buf), &addr, &addr_size);
 	if (n <= 0)
 		return;
+
+	ctx->session->ping_req = 0;
+	ctx->session->ping_timeout =
+		get_timeout_msec(&ctx->core,
+				 ctx->core.config->liveness_timeout);
 
 	process_session_cmd(&ctx->core, ctx->session, &ctx->sock, &addr,
 			    addr_size, buf + 4, n - 4);

@@ -105,16 +105,16 @@ enum {
 	{"input-buffer-size", 1, 0, OPT_INPUT_BUFFER_SIZE},		\
 	{"output-buffer-size", 1, 0, OPT_OUTPUT_BUFFER_SIZE},		\
 	{"tolerance", 1, 0, OPT_TOLERANCE},				\
+	{"liveness-timeout", 1, 0, OPT_LIVENESS_TIMEOUT},		\
+	{"ping-timeout", 1, 0, OPT_PING_TIMEOUT},			\
+	{"max-ping-retry", 1, 0, OPT_MAX_PING_RETRY},			\
 	{"debug", 0, 0, OPT_DEBUG}
 
 #define COMMON_CONFIG_GETOPT	"S:R:H:E:P:G:B:f:6s:d"
 
 #define _SERVER_CONFIG_GETOPT_LONG					\
 	COMMON_CONFIG_GETOPT_LONG,					\
-	{"sessions", 1, 0, OPT_MAX_SESSIONS},				\
-	{"liveness-timeout", 1, 0, OPT_LIVENESS_TIMEOUT},		\
-	{"ping-timeout", 1, 0, OPT_PING_TIMEOUT},			\
-	{"max-ping-retry", 1, 0, OPT_MAX_PING_RETRY}
+	{"sessions", 1, 0, OPT_MAX_SESSIONS}
 
 #ifdef SUPPORT_AUTH
 #define SERVER_CONFIG_GETOPT		COMMON_CONFIG_GETOPT "u:x:"
@@ -167,14 +167,14 @@ enum {
 	"  --input-buffer-size=<N>: input pending buffer size (in words)\n" \
 	"  --output-buffer-size=<N>: output cache buffer size (in words)\n" \
 	"  --tolerance=<N>: number of UMPs before triggering retransmit request\n" \
+	"  --liveness-timeout=<MSEC>: first ping timeout (in msec)\n" \
+	"  --ping-timeout=<MSEC>: ping retry timeout (in msec)\n" \
+	"  --max-ping-retry=<NUM>: max retries for ping connection checks\n" \
 	"  -d,--debug: enable debug\n"
 
 #define _SERVER_CONFIG_USAGE	    \
 	COMMON_CONFIG_USAGE \
-	"  -s,--sessions=<N>: max number of sessions\n" \
-	"  --liveness-timeout=<MSEC>: first ping timeout (in msec)\n" \
-	"  --ping-timeout=<MSEC>: ping retry timeout (in msec)\n" \
-	"  --max-ping-retry=<NUM>: max retries for ping connection checks\n"
+	"  -s,--sessions=<N>: max number of sessions\n"
 
 #ifdef SUPPORT_AUTH
 #define SERVER_CONFIG_USAGE \
@@ -204,7 +204,7 @@ enum {
 #endif
 
 /* Configuration setup */
-void am2n_config_init(struct am2n_config *config);
+void am2n_config_init(struct am2n_config *config, bool server);
 int am2n_config_parse_option(struct am2n_config *config,
 			     bool server, int c, const char *arg);
 void am2n_config_debug_print(const struct am2n_config *config, bool server);
