@@ -89,6 +89,7 @@ static int mdns_callback(const char *name, const char *address,
 	} else {
 		log("host %s port %d found for service %s", address, port, name);
 		target_found = 1;
+		config.ipv6 = ipv6;
 	}
 	return 1;
 }
