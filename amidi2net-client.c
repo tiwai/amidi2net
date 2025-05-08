@@ -26,18 +26,8 @@ static void usage(void)
 #endif
 	       "options:\n"
 	       CLIENT_CONFIG_USAGE
-#ifdef SUPPORT_AUTH
-	       "  -u,--user=<NAME>: use user-authentication with the given name\n"
-	       "  -x,--secret=<STR>: secret / password for authentication\n"
-#endif
 	       );
 }
-
-#ifdef SUPPORT_AUTH
-#define AUTH_OPT "u:x:"
-#else
-#define AUTH_OPT ""
-#endif
 
 #ifdef SUPPORT_MDNS
 #define MDNS_OPT "l:"
@@ -110,10 +100,6 @@ int main(int argc, char **argv)
 	const char *server;
 	const char *port;
 	int c, opt_idx, err;
-#ifdef SUPPORT_AUTH
-	const char *username = NULL;
-	const char *secret = NULL;
-#endif
 #ifdef SUPPORT_MDNS
 	const char *lookup = NULL;
 #endif
@@ -122,7 +108,7 @@ int main(int argc, char **argv)
 	config.ep_name = DEFAULT_EP_NAME;
 	config.prod_id = DEFAULT_PROD_ID;
 
-	while ((c = getopt_long(argc, argv, CLIENT_CONFIG_GETOPT AUTH_OPT MDNS_OPT,
+	while ((c = getopt_long(argc, argv, CLIENT_CONFIG_GETOPT MDNS_OPT,
 				long_opts, &opt_idx)) != -1) {
 		err = am2n_config_parse_option(&config, false, c, optarg);
 		if (err < 0)
@@ -130,18 +116,6 @@ int main(int argc, char **argv)
 		else if (err > 0)
 			continue;
 		switch (c) {
-#ifdef SUPPORT_AUTH
-		case 'u':
-			username = optarg;
-			if (strlen(username) > 64) {
-				error("Too long user name");
-				return 1;
-			}
-			break;
-		case 'x':
-			secret = optarg;
-			break;
-#endif
 #ifdef SUPPORT_MDNS
 		case 'l':
 			lookup = optarg;
@@ -176,24 +150,14 @@ int main(int argc, char **argv)
 		}
 	}
 
-#ifdef SUPPORT_AUTH
-	if (username && !secret) {
-		error("Set the password with --secret option");
-		return 1;
-	}
-#endif
-
 	client = am2n_client_init(&host_addr, &config);
 	if (!client) {
 		error("Client allocation error");
 		return 1;
 	}
 
-#ifdef SUPPORT_AUTH
-	if (config.auth_support && (username || secret))
-		config.auth_support = 0;
-	am2n_set_auth(&client->core, username, secret, false);
-#endif
+	if (am2n_auth_init(&client->core) < 0)
+		goto error;
 
 	if (am2n_io_init(&client->core) < 0) {
 		error("Unable to set up I/O backend");

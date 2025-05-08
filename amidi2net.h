@@ -168,10 +168,9 @@ struct am2n_ctx {
 
 #ifdef SUPPORT_AUTH
 	/* Authentication: FIXME: support only a single user*/
-	const unsigned char *auth_secret;
-	const unsigned char *auth_username;
+	unsigned char auth_secret[64];
+	unsigned char auth_username[64];
 	unsigned int auth_support;
-	bool auth_forced;
 #endif
 
 	/* open / close session callbacks */
@@ -247,6 +246,15 @@ typedef int (*am2n_lookup_callback_t)(const char *name, const char *address,
 				      const char *prod_id, void *priv_data);
 int am2n_mdns_lookup_service(int timeout_msec, bool ignore_local,
 			     am2n_lookup_callback_t callback, void *priv_data);
+#else
+static inline struct am2n_mdns_ctx
+*am2n_server_publish_mdns(struct am2n_server_ctx *server,
+			  const char *service)
+{
+	return NULL;
+}
+
+static inline void am2n_server_quit_mdns(struct am2n_mdns_ctx *ctx) {}
 #endif /* SUPPORT_MDNS */
 
 /*
@@ -267,8 +275,7 @@ int am2n_io_init(struct am2n_ctx *ctx);
  * Authentication
  */
 #ifdef SUPPORT_AUTH
-void am2n_set_auth(struct am2n_ctx *ctx, const char *username,
-		   const char *secret, bool forced);
+int am2n_auth_init(struct am2n_ctx *ctx);
 void generate_crypto_nonce(unsigned char *buf);
 int auth_sha256_digest(unsigned char *buf,
 		       const unsigned char *nonce,
@@ -280,8 +287,8 @@ int user_auth_sha256_digest(unsigned char *buf,
 			    int user_len,
 			    const unsigned char *passwd,
 			    int passwd_len);
-int ask_username_prompt(char *buf, int size);
-int ask_secret_prompt(const char *prompt, char *buf, int size);
+#else
+static inline init am2n_init_auth(struct am2n_ctx *ctx) { return 0; }
 #endif
 
 /*

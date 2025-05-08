@@ -14,6 +14,8 @@ static int submit_ump_data(struct ump_session *session,
 static int do_fail_test(struct ump_sock *sock, const void *addr,
 			unsigned int addr_size, const unsigned char *buf,
 			int size);
+static int ask_username_prompt(char *buf, int size);
+static int ask_secret_prompt(const char *prompt, char *buf, int size);
 
 /* Send a UDP message of the given buffer for the given byte size */
 static int send_msg(struct ump_sock *sock, const void *addr,
@@ -159,7 +161,8 @@ static int send_invitation(struct am2n_client_ctx *ctx)
 	int len = 1;
 
 #ifdef SUPPORT_AUTH
-	auth = ctx->core.auth_support;
+	auth = UMP_NET_CAPS_INVITATION_AUTH |
+		UMP_NET_CAPS_INVITATION_USER_AUTH;
 #endif
 
 	add_signature(buf);
@@ -213,20 +216,17 @@ static int send_invitation_with_auth(struct ump_session *session,
 	struct am2n_ctx *ctx = session->ctx;
 	char buf[64];
 	unsigned char digest[32];
-	char tmp_secret[64];
-	const char *secret;
 	int len = 1;
 
-	secret = ctx->auth_secret;
-	if (!secret) {
-		if (ask_secret_prompt("Secret: ", tmp_secret,
-				      sizeof(tmp_secret)) < 0)
+	if (!(ctx->auth_support & UMP_NET_CAPS_INVITATION_USER_AUTH)) {
+		if (ask_secret_prompt("Secret: ", ctx->auth_secret,
+				      sizeof(ctx->auth_secret)) < 0)
 			return -1;
-		secret = tmp_secret;
 	}
 
-	if (auth_sha256_digest(digest, session->crypto_nonce, secret,
-			       strlen(secret))) {
+	if (auth_sha256_digest(digest, session->crypto_nonce,
+			       ctx->auth_secret,
+			       strlen(ctx->auth_secret))) {
 		error("SHA256 digest creation error");
 		return -1;
 	}
@@ -244,36 +244,27 @@ static int send_invitation_with_user_auth(struct ump_session *session,
 	struct am2n_ctx *ctx = session->ctx;
 	char buf[256];
 	unsigned char digest[32];
-	char tmp_username[64];
-	char tmp_passwd[64];
-	const char *username, *passwd;
 	int len = 1;
 
-	username = ctx->auth_username;
-	if (!username) {
-		if (ask_username_prompt(tmp_username, sizeof(tmp_username)) < 0)
+	if (!(ctx->auth_support & UMP_NET_CAPS_INVITATION_USER_AUTH)) {
+		if (ask_username_prompt(ctx->auth_username,
+					sizeof(ctx->auth_username)) < 0)
 			return -1;
-		username = tmp_username;
-	}
-
-	passwd = ctx->auth_secret;
-	if (!passwd) {
-		if (ask_secret_prompt("Password: ", tmp_passwd,
-				      sizeof(tmp_passwd)) < 0)
+		if (ask_secret_prompt("Password: ", ctx->auth_secret,
+				      sizeof(ctx->auth_secret)) < 0)
 			return -1;
-		passwd = tmp_passwd;
 	}
 
 	if (user_auth_sha256_digest(digest, session->crypto_nonce,
-				    username, strlen(username),
-				    passwd, strlen(passwd))) {
+				    ctx->auth_username, strlen(ctx->auth_username),
+				    ctx->auth_secret, strlen(ctx->auth_secret))) {
 		error("SHA256 digest creation error");
 		return -1;
 	}
 
 	add_signature(buf);
 	len += cmd_fill_invitation_with_user_auth(buf + 4, digest,
-						  username);
+						  ctx->auth_username);
 	assert(len * 4 <= sizeof(buf));
 	return send_session_msg(session, buf, len * 4);
 }
@@ -319,27 +310,60 @@ static int try_session_user_auth(struct ump_session *session,
 }
 
 /* Set up the auth config */
-void am2n_set_auth(struct am2n_ctx *ctx, const char *username,
-		   const char *secret, bool forced)
+int am2n_auth_init(struct am2n_ctx *ctx)
 {
-	if (username && secret)
+	if (ctx->config->auth_username && !ctx->config->auth_secret) {
+		error("Set the password with --secret option");
+		return -1;
+	}
+
+	if (ctx->config->auth_username)
 		ctx->auth_support = UMP_NET_CAPS_INVITATION_USER_AUTH;
-	else if (secret)
+	else if (ctx->config->auth_secret)
 		ctx->auth_support = UMP_NET_CAPS_INVITATION_AUTH;
 	else
 		ctx->auth_support = ctx->config->auth_support;
-	ctx->auth_forced = forced;
-	ctx->auth_username = username;
-	ctx->auth_secret = secret;
-	if (ctx->auth_support) {
-		debug("* server setup auth support: %s",
+
+	if (ctx->config->auth_username)
+		strlcpy(ctx->auth_username, ctx->config->auth_username,
+			sizeof(ctx->auth_username));
+	if (ctx->config->auth_secret)
+		strlcpy(ctx->auth_secret, ctx->config->auth_secret,
+			sizeof(ctx->auth_secret));
+
+	if (ctx->role == ROLE_SERVER && ctx->auth_support) {
+		if (!*ctx->auth_username &&
+		    (ctx->auth_support & UMP_NET_CAPS_INVITATION_USER_AUTH)) {
+			if (ask_username_prompt(ctx->auth_username,
+						sizeof(ctx->auth_username)) < 0) {
+				error("Cannot get user name");
+				return -1;
+			}
+			if (ask_secret_prompt("Password: ", ctx->auth_secret,
+					      sizeof(ctx->auth_secret)) < 0) {
+				error("Cannot get password");
+				return -1;
+			}
+		} else if (!*ctx->auth_secret &&
+			   (ctx->auth_support & UMP_NET_CAPS_INVITATION_AUTH)) {
+			if (ask_secret_prompt("Secret: ", ctx->auth_secret,
+					      sizeof(ctx->auth_secret)) < 0) {
+				error("Cannot get secret string");
+				return 1;
+			}
+		}
+
+		debug("* server setup auth support: %s, forced = %d",
 		      (ctx->auth_support & UMP_NET_CAPS_INVITATION_USER_AUTH) ?
-		      "user-auth" : "auth");
+		      "user-auth" : "auth",
+		      ctx->config->auth_forced);
 	}
+
+	return 0;
 }
 
 /* Ask a username via prompt and fill into the given buffer */
-int ask_username_prompt(char *buf, int size)
+static int ask_username_prompt(char *buf, int size)
 {
 	char *p;
 
@@ -356,7 +380,7 @@ int ask_username_prompt(char *buf, int size)
 }
 
 /* Ask a secret string or password via prompt and fill into the given buffer */
-int ask_secret_prompt(const char *prompt, char *buf, int size)
+static int ask_secret_prompt(const char *prompt, char *buf, int size)
 {
 	char *s = getpass(prompt);
 
@@ -1066,7 +1090,7 @@ static int process_session_cmd(struct am2n_ctx *ctx,
 				if (send_invitation_reply_user_auth_req(session, 0) < 0)
 					return -1;
 				return 0;
-			} else if (ctx->auth_forced) {
+			} else if (ctx->config->auth_forced) {
 				send_bye(sock, addr, addr_size,
 					 UMP_NET_BYE_REASON_NO_MATCHING_AUTH);
 				return 0;
@@ -1162,8 +1186,7 @@ static int process_session_cmd(struct am2n_ctx *ctx,
 			break;
 		case UMP_NET_INVITATION_REPLY_AUTH_REQ:
 #ifdef SUPPORT_AUTH
-			if (ctx->role == ROLE_CLIENT &&
-			    ctx->auth_support & UMP_NET_CAPS_INVITATION_AUTH) {
+			if (ctx->role == ROLE_CLIENT) {
 				if (cmd[3]) {
 					error("Invalid auth: state = %d (%s)",
 					      cmd[3],
@@ -1182,8 +1205,7 @@ static int process_session_cmd(struct am2n_ctx *ctx,
 			break;
 		case UMP_NET_INVITATION_REPLY_USER_AUTH_REQ:
 #ifdef SUPPORT_AUTH
-			if (ctx->role == ROLE_CLIENT &&
-			    ctx->auth_support & UMP_NET_CAPS_INVITATION_USER_AUTH) {
+			if (ctx->role == ROLE_CLIENT) {
 				if (cmd[3]) {
 					error("Invalid user auth: state = %d (%s)",
 					      cmd[3],

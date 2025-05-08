@@ -150,22 +150,33 @@ IPv4.
 Authentication Options
 ----------------------
 
-When you pass `--auth` option to client or server, it will ask a
-prompt for the secret string for the authentication.
-When you pass `--user-auth` option, it will ask a user name and a
-password prompt for the user-authentication, instead.
+When you pass `--auth` option to the server, the server runs with the
+standard authentication enabled.  It will ask a prompt for the secret
+string for the authentication, or you can pass it with `--secret` (or
+`-x`) option.
 
-Alternatively, you can pass the secret string via `--secret` (or `-x`)
-option, and the user name via `--user` (or `-u`) option, too.
-(Yeah I know it's no secret at all :)
+When you pass `--user-auth` option  to the server, the server will run
+with the user-authentication enabled, and it will ask a user name as
+well as a password for the user-authentication, instead.  You can pass
+`--user` (or `-u`) for the user name and `--secret` (or `-x`) for the
+password, too.
 
-So far, you can't use two different authentication mechanisms, but
-enable only one of two.
+So far, you can't use two different authentication mechanisms on the
+server, but enable only one of two.  Without those options above, the
+server runs without authentication.
 
-Without those options above, the server runs without authentication.
+The server has also `--auth-forced` option for prohibiting the
+fallback when the given authentication from a client doesn't match.
 
-The server has also `--auth-forced` option to disallow the fallback
-when the given authentication doesn't match.
+When a client receives the command "invitation reply with
+authentication required" from the server, it'll ask you a prompt for
+the secret string.  You can pass it with `--secret` (or `-x`) option
+to the client beforehand, too.
+
+Similarly, when a client receives the command "invitation reply with
+user-authentication required" from the server, it'll ask you a prompt
+for user name and password.  You can pass it with `--user` (or `-u`)
+and `--secret` (or `-x`) options to the client beforehand, too.
 
 Forward Error Correction (FEC)
 ------------------------------

@@ -156,12 +156,14 @@ int am2n_config_parse_option(struct am2n_config *config,
 	case OPT_TOLERANCE:
 		config->tolerance = atoi(optarg);
 		return 1;
-	case OPT_SUPPORT_AUTH:
-		config->auth_support |= UMP_NET_CAPS_INVITATION_AUTH;
+#ifdef SUPPORT_AUTH
+	case OPT_AUTH_USER:
+		config->auth_username = optarg;
 		return 1;
-	case OPT_SUPPORT_USER_AUTH:
-		config->auth_support |= UMP_NET_CAPS_INVITATION_USER_AUTH;
+	case OPT_AUTH_SECRET:
+		config->auth_secret = optarg;
 		return 1;
+#endif
 	case OPT_DEBUG:
 		enable_debug++;
 		return 1;
@@ -187,6 +189,17 @@ int am2n_config_parse_option(struct am2n_config *config,
 		case OPT_MAX_PING_RETRY:
 			config->max_ping_retry = atoi(optarg);
 			return 1;
+#ifdef SUPPORT_AUTH
+		case OPT_SUPPORT_AUTH:
+			config->auth_support |= UMP_NET_CAPS_INVITATION_AUTH;
+			return 1;
+		case OPT_SUPPORT_USER_AUTH:
+			config->auth_support |= UMP_NET_CAPS_INVITATION_USER_AUTH;
+			return 1;
+		case OPT_SUPPORT_AUTH_FORCED:
+			config->auth_forced = true;
+			return 1;
+#endif
 		}
 	} else {
 		switch (c) {
