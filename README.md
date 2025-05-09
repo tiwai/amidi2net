@@ -63,19 +63,7 @@ during the runtime.
 
 Once after running a servier or a client, you can connect from/to this
 ALSA sequencer client to any other ALSA sequencer programs or devices
-as usual, for example:
-```
-% amidi2net-server
-Created sequencer client 128
-
-% aconnect -iol
-client 128: 'amidi2net-server' [type=user,UMP-MIDI1,pid=20256]
-    0 'MIDI 2.0
-client 129: 'Virtual Keyboard' [type=user,pid=20265]
-    0 'Virtual Keyboard'
-
-% aconnect 129:0 128:0
-```
+as usual.
 
 For composing a UMP Endpoint Info, this mode needs a UMP Endpoint name
 and a UMP product ID.  The program fills the default strings, but you
@@ -344,6 +332,111 @@ Then run like:
 % ./configure --prefix=/usr
 % make
 % sudo make install
+```
+
+Usage Examples
+--------------
+
+Start a network server (host) on a machine A with IPv6 enabled:
+```
+% amidi2net-server -6
+Created sequencer client 128
+assigned UDP port = 45569
+```
+It opened an ALSA sequencer client 128, and the assigned UDP port is
+45569 on both IPv4 and IPv6.
+The ALSA sequencer client can be confirmed in
+`/proc/asound/seq/clients` output:
+
+```
+% cat /proc/asound/seq/clients
+....
+Client 128 : "amidi2net-server" [User UMP MIDI1]
+  UMP Endpoint: "amidi2net-server"
+  UMP Block 0: "Bridge I/O" [Active]
+    Groups: 1-16
+  Port   0 : "MIDI 2.0" (RWeX) [In/Out]
+  Port   1 : "Group 1 (Bridge I/O)" (RWeX) [In/Out]
+  Port   2 : "Group 2 (Bridge I/O)" (RWeX) [In/Out]
+  ....
+```
+
+Now start a synthesizer program (e.g. fluidsynth) on this machine A:
+```
+% fluidsynth -siq &
+% cat /proc/asound/seq/clients
+....
+Client 129 : "FLUID Synth (31136)" [User Legacy]
+  Port   0 : "Synth input port (31136:0)" (-We-) [Out]
+```
+
+Connect the input of the UMP Group 1 of the network host to the
+synthesizer program:
+```
+% aconnect amidi2net-server:1 "FLUID Synth:0"
+```
+
+On another machine B, check the available network MIDI hosts via
+`amidi2net-list`.  It will show both IPv4 and IPv6 ports like:
+```
+% amidi2net-list
+amidi2net
+  Protocol: ipv4
+  Host: 192.168.178.31
+  Port: 53794
+  Endpoint: amidi2net-server
+  Product-Id: 0.1
+amidi2net
+  Protocol: ipv6
+  Host: 2001:a62:1a05:1:1234:5678:abcd:0123
+  Port: 53794
+  Endpoint: amidi2net-server
+  Product-Id: 0.1
+```
+
+Run a network MIDI client on the machine B, and connect to the machine
+A with its service name `amidi2net`:
+```
+% amidi2net-client -l amidi2net
+host 192.168.178.31 port 53794 found for service amidi2net
+Created sequencer client 130
+```
+
+If you want to connect over IPv6, try to pass `-6` option
+additionally:
+```
+% amidi2net-client -6 -l amidi2net
+host 2001:a62:1a05:1:1234:5678:abcd:0123 port 53794 found for service amidi2net
+Created sequencer client 130
+```
+
+You can check the ALSA sequencer client 130  on the machine B:
+```
+% cat /proc/asound/seq/clients
+....
+Client 130 : "amidi2net-client" [User UMP MIDI1]
+  UMP Endpoint: "amidi2net-client"
+  UMP Block 0: "Bridge I/O" [Active]
+    Groups: 1-16
+  Port   0 : "MIDI 2.0" (RWeX) [In/Out]
+  Port   1 : "Group 1 (Bridge I/O)" (RWeX) [In/Out]
+  Port   2 : "Group 2 (Bridge I/O)" (RWeX) [In/Out]
+  ....
+````
+
+On the machine B, try to play back a MIDI2 clip file, and feed it to
+the UMP Group 1 of the network client above:
+```
+% aplaymidi2 -p amidi2net-client:1 something.midi2
+```
+
+This will deliver the UMP data to the synthesier on the machine A that
+reads from the Group 1 port, and you'll hear the outputs there.
+That is, it flows like:
+```
+aplaymidi2 -> amidi2net-client ==Network==> amidi2-server -> fluidsynth
+seq xxx:0     seq 130:1                     seq 128:1        seq 129:1
+      (Machine B)                                   (Machine A)
 ```
 
 License
