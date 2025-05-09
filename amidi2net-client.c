@@ -87,9 +87,10 @@ static int mdns_callback(const char *name, const char *address,
 	if (get_addr(address, port_name, ipv6, &host_addr) < 0) {
 		error("Cannot get IP address for %s:%s", address, port_name);
 	} else {
+		if (ipv6 != config.ipv6)
+			return 0;
 		log("host %s port %d found for service %s", address, port, name);
 		target_found = 1;
-		config.ipv6 = ipv6;
 	}
 	return 1;
 }
