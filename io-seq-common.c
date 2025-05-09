@@ -57,6 +57,7 @@ static int seq_common_write_ump_packet(struct am2n_ctx *ctx, const void *buf,
 	struct am2n_seq_common *rs = ctx->io.data;
 	const uint32_t *ump = buf;
 	snd_seq_ump_event_t ev;
+	unsigned int type;
 	int plen, err;
 
 	if (len <= 0)
@@ -66,11 +67,16 @@ static int seq_common_write_ump_packet(struct am2n_ctx *ctx, const void *buf,
 	snd_seq_ev_set_direct(&ev);
 	snd_seq_ev_set_ump(&ev);
 	while (len > 0) {
-		plen = snd_ump_packet_length(snd_ump_msg_hdr_type(*ump));
+		type = snd_ump_msg_hdr_type(*ump);
+		plen = snd_ump_packet_length(type);
 		if (len < plen)
 			break;
 		debug2("write ump: %08x, len=%d", *ump, plen);
 		snd_seq_ev_set_ump_data(&ev, (void *)ump, plen * 4);
+		if (snd_ump_msg_type_is_groupless(type))
+			snd_seq_ev_set_source(&ev, 0);
+		else
+			snd_seq_ev_set_source(&ev, snd_ump_msg_hdr_group(*ump) + 1);
 		err = snd_seq_ump_event_output(rs->seq, &ev);
 		if (err < 0)
 			break;
