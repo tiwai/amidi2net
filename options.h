@@ -148,14 +148,14 @@ enum {
 #endif
 
 #define COMMON_CONFIG_USAGE \
-	"  -H,--hub=<MIDIVERSION>: run in sequencer hub mode (default)\n" \
-	"  -S,--seq=<SEQ:PORT>: run in sequencer bridge mode\n" \
-	"  -R,--rawmidi=<DEVICE>: run in rawmidi bridge mode\n" \
+	"  -H,--hub=<MIDIVERSION>: run in sequencer hub mode (default mode), <MIDIVERSION> is either 1 or 2\n" \
+	"  -S,--seq=<SEQ:PORT>: run in sequencer bridge mode, bound with the given sequencer client:port\n" \
+	"  -R,--rawmidi=<DEVICE>: run in rawmidi bridge mode, bound with the given rawmidi device\n" \
 	"  -N,--ep-name=<NAME>: UMP Endpoint name (for hub mode)\n" \
 	"  -P,--prod-id=<NAME>: UMP Product Id (for hub mode)\n" \
 	"  -G,--groups=<NUM>: number of UMP Groups (for hub mode)\n" \
 	"  -B,--blocks=<NUM>: number of UMP Function Blocks (for hub mode)\n" \
-	"  -f,--fec=<NUM>: number of FEC data\n" \
+	"  -f,--fec=<NUM>: number of FEC data, 0 to disable FEC\n" \
 	"  -6,--ipv6: enable IPv6\n"			\
 	"  --missing-pkt-timeout=<MSEC>: timeout for missing packet resubmit (in msec)\n" \
 	"  --retransmit-timeout=<MSEC>: retransmit retry timeout (in msec)\n" \
