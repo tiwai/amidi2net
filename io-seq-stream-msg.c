@@ -42,7 +42,7 @@ struct snd_ump_stream_msg_ep_info {
 } __attribute((packed));
 
 /* UMP Stream Message: Device Info Notification (128bit) */
-struct snd_ump_stream_msg_devince_info {
+struct snd_ump_stream_msg_device_info {
 #ifdef __BIG_ENDIAN_BITFIELD
 	/* 0 */
 	uint32_t type:4;
@@ -216,7 +216,7 @@ static void reply_ump_stream_ep_device(struct am2n_ctx *ctx)
 {
 	struct am2n_seq_common *rs = ctx->io.data;
 	const snd_ump_endpoint_info_t *ep = rs->ep_info;
-	struct snd_ump_stream_msg_devince_info rep = {
+	struct snd_ump_stream_msg_device_info rep = {
 		.type = SND_UMP_MSG_TYPE_STREAM,
 		.status = SND_UMP_STREAM_MSG_STATUS_DEVICE_INFO,
 	};
