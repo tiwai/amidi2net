@@ -7,7 +7,7 @@
 #include "options.h"
 #include <assert.h>
 
-int enable_debug = 0;
+int verbosity = 1;
 
 static int submit_ump_data(struct ump_session *session,
 			   int step_back, unsigned short seqno);

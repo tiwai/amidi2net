@@ -294,15 +294,15 @@ static inline init am2n_init_auth(struct am2n_ctx *ctx) { return 0; }
 /*
  * Debug
  */
-extern int enable_debug;
+extern int verbosity;
 
-#define log(fmt, args...) fprintf(stderr, fmt "\n", ##args)
 #define error(fmt, args...) fprintf(stderr, "ERROR: " fmt "\n", ##args)
-#define __debug(level, fmt, args...) do {		\
-	if (enable_debug >= level) \
+#define __log(level, fmt, args...) do {		\
+	if (verbosity >= level) \
 		fprintf(stderr, fmt "\n", ##args); \
 	} while (0)
-#define debug(fmt, args...) __debug(1, fmt, ##args)
-#define debug2(fmt, args...) __debug(2, fmt, ##args)
+#define log(fmt, args...) __log(1, fmt, ##args)
+#define debug(fmt, args...) __log(2, fmt, ##args)
+#define debug2(fmt, args...) __log(3, fmt, ##args)
 
 #endif /* __AMIDI2NET_H_INC */

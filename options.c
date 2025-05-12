@@ -170,8 +170,11 @@ int am2n_config_parse_option(struct am2n_config *config,
 	case OPT_VERSION:
 		printf("v%s\n", VERSION);
 		exit(0);
+	case OPT_QUIET:
+		verbosity = 0;
+		return 1;
 	case OPT_DEBUG:
-		enable_debug++;
+		verbosity++;
 		return 1;
 	}
 

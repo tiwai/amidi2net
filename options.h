@@ -48,6 +48,7 @@ struct am2n_config {
 /* types used with getopt_log() */
 enum {
 	OPT_HELP = 'h',
+	OPT_QUIET = 'q',
 	OPT_SEQ_BRIDGE_MODE = 'S',
 	OPT_RAWMIDI_MODE = 'R',
 	OPT_SEQ_HUB_MODE = 'H',
@@ -111,10 +112,11 @@ enum {
 	{"ping-timeout", 1, 0, OPT_PING_TIMEOUT},			\
 	{"max-ping-retry", 1, 0, OPT_MAX_PING_RETRY},			\
 	{"help", 0, 0, OPT_HELP},					\
+	{"quiet", 0, 0, OPT_QUIET},					\
 	{"version", 0, 0, OPT_VERSION},					\
 	{"debug", 0, 0, OPT_DEBUG}
 
-#define COMMON_CONFIG_GETOPT	"S:R:H:E:P:G:B:f:6s:dh"
+#define COMMON_CONFIG_GETOPT	"S:R:H:E:P:G:B:f:6s:dhq"
 
 #define _SERVER_CONFIG_GETOPT_LONG					\
 	COMMON_CONFIG_GETOPT_LONG,					\
@@ -176,6 +178,7 @@ enum {
 	"  --max-ping-retry=<NUM>: max retries for ping connection checks\n" \
 	"  --version: show the version number\n" \
 	"  -h,--help: show this help text\n" \
+	"  -q,--quiet: suppress the console output\n" \
 	"  -d,--debug: enable debug\n"
 
 #define _SERVER_CONFIG_USAGE	    \
