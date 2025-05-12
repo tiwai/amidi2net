@@ -69,15 +69,15 @@ int am2n_config_parse_option(struct am2n_config *config,
 	switch (c) {
 	case OPT_SEQ_BRIDGE_MODE:
 		config->io_type = UMP_IO_BACKEND_SEQ_BRIDGE;
-		config->seq_devname = optarg;
+		config->seq_devname = arg;
 		return 1;
 	case OPT_RAWMIDI_MODE:
 		config->io_type = UMP_IO_BACKEND_RAWMIDI;
-		config->rawmidi_device = optarg;
+		config->rawmidi_device = arg;
 		return 1;
 	case OPT_SEQ_HUB_MODE:
 		config->io_type = UMP_IO_BACKEND_SEQ_HUB;
-		config->midi_version = atoi(optarg);
+		config->midi_version = atoi(arg);
 		if (config->midi_version != 1 &&
 		    config->midi_version != 2) {
 			error("Invalid midi version specified");
@@ -85,27 +85,27 @@ int am2n_config_parse_option(struct am2n_config *config,
 		}
 		return 1;
 	case OPT_EP_NAME:
-		config->ep_name = optarg;
+		config->ep_name = arg;
 		return 1;
 	case OPT_PROD_ID:
-		config->prod_id = optarg;
+		config->prod_id = arg;
 		return 1;
 	case OPT_GROUPS:
-		config->num_groups = atoi(optarg);
+		config->num_groups = atoi(arg);
 		if (config->num_groups < 1 || config->num_groups > 16) {
 			error("Invalid num_groups specified");
 			return -1;
 		}
 		return 1;
 	case OPT_BLOCKS:
-		config->num_blocks = atoi(optarg);
+		config->num_blocks = atoi(arg);
 		if (config->num_blocks < 1 || config->num_blocks > 32) {
 			error("Invalid num_groups specified");
 			return -1;
 		}
 		return 1;
 	case OPT_FEC_COUNT:
-		config->fec_count = atoi(optarg);
+		config->fec_count = atoi(arg);
 		if (config->fec_count > 32) {
 			error("Too many FEC count %d", config->fec_count);
 			return -1;
@@ -115,22 +115,22 @@ int am2n_config_parse_option(struct am2n_config *config,
 		config->ipv6 = true;
 		return 1;
 	case OPT_MISSING_PKT_TIMEOUT:
-		config->missing_pkt_timeout = atoi(optarg);
+		config->missing_pkt_timeout = atoi(arg);
 		return 1;
 	case OPT_RETRANSMIT_TIMEOUT:
-		config->retransmit_timeout = atoi(optarg);
+		config->retransmit_timeout = atoi(arg);
 		return 1;
 	case OPT_MAX_MISSING_RETRY:
-		config->max_missing_retry = atoi(optarg);
+		config->max_missing_retry = atoi(arg);
 		return 1;
 	case OPT_ZEROLENGTH_UMP_TIMEOUT:
-		config->zerolength_ump_timeout = atoi(optarg);
+		config->zerolength_ump_timeout = atoi(arg);
 		return 1;
 	case OPT_FAIL_TEST:
-		config->fail_test = atoi(optarg);
+		config->fail_test = atoi(arg);
 		return 1;
 	case OPT_FAIL_TEST_MODE:
-		config->fail_test_mode = atoi(optarg);
+		config->fail_test_mode = atoi(arg);
 		if (config->fail_test_mode > FAIL_TEST_DROP_FEC_RECEIVER) {
 			error("Invalid fail test mode: %d",
 			      config->fail_test_mode);
@@ -141,7 +141,7 @@ int am2n_config_parse_option(struct am2n_config *config,
 		config->passthrough = true;
 		return 1;
 	case OPT_INPUT_BUFFER_SIZE:
-		config->input_buffer_size = atoi(optarg);
+		config->input_buffer_size = atoi(arg);
 		if (config->input_buffer_size < 2) {
 			error("Invalid input buffer size %d",
 			      config->input_buffer_size);
@@ -149,7 +149,7 @@ int am2n_config_parse_option(struct am2n_config *config,
 		}
 		return 1;
 	case OPT_OUTPUT_BUFFER_SIZE:
-		config->output_buffer_size = atoi(optarg);
+		config->output_buffer_size = atoi(arg);
 		if (config->output_buffer_size < config->fec_count + 1) {
 			error("Invalid output buffer size %d",
 			      config->output_buffer_size);
@@ -157,14 +157,14 @@ int am2n_config_parse_option(struct am2n_config *config,
 		}
 		return 1;
 	case OPT_TOLERANCE:
-		config->tolerance = atoi(optarg);
+		config->tolerance = atoi(arg);
 		return 1;
 #ifdef SUPPORT_AUTH
 	case OPT_AUTH_USER:
-		config->auth_username = optarg;
+		config->auth_username = arg;
 		return 1;
 	case OPT_AUTH_SECRET:
-		config->auth_secret = optarg;
+		config->auth_secret = arg;
 		return 1;
 #endif
 	case OPT_VERSION:
@@ -181,7 +181,7 @@ int am2n_config_parse_option(struct am2n_config *config,
 	if (server) {
 		switch (c) {
 		case OPT_MAX_SESSIONS:
-			config->max_sessions = atoi(optarg);
+			config->max_sessions = atoi(arg);
 			if (config->max_sessions < 1 ||
 			    config->max_sessions > 128) {
 				error("Too many max sessions %d",
@@ -190,13 +190,13 @@ int am2n_config_parse_option(struct am2n_config *config,
 			}
 			return 1;
 		case OPT_LIVENESS_TIMEOUT:
-			config->liveness_timeout = atoi(optarg);
+			config->liveness_timeout = atoi(arg);
 			return 1;
 		case OPT_PING_TIMEOUT:
-			config->ping_timeout = atoi(optarg);
+			config->ping_timeout = atoi(arg);
 			return 1;
 		case OPT_MAX_PING_RETRY:
-			config->max_ping_retry = atoi(optarg);
+			config->max_ping_retry = atoi(arg);
 			return 1;
 #ifdef SUPPORT_AUTH
 		case OPT_SUPPORT_AUTH:
@@ -213,10 +213,10 @@ int am2n_config_parse_option(struct am2n_config *config,
 	} else {
 		switch (c) {
 		case OPT_INVITATION_TIMEOUT:
-			config->invitation_timeout = atoi(optarg);
+			config->invitation_timeout = atoi(arg);
 			return 1;
 		case OPT_MAX_INVITATION_RETRY:
-			config->max_invitation_retry = atoi(optarg);
+			config->max_invitation_retry = atoi(arg);
 			return 1;
 		}
 	}
