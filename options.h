@@ -47,6 +47,7 @@ struct am2n_config {
 
 /* types used with getopt_log() */
 enum {
+	OPT_HELP = 'h',
 	OPT_SEQ_BRIDGE_MODE = 'S',
 	OPT_RAWMIDI_MODE = 'R',
 	OPT_SEQ_HUB_MODE = 'H',
@@ -108,9 +109,10 @@ enum {
 	{"liveness-timeout", 1, 0, OPT_LIVENESS_TIMEOUT},		\
 	{"ping-timeout", 1, 0, OPT_PING_TIMEOUT},			\
 	{"max-ping-retry", 1, 0, OPT_MAX_PING_RETRY},			\
+	{"help", 0, 0, OPT_HELP},					\
 	{"debug", 0, 0, OPT_DEBUG}
 
-#define COMMON_CONFIG_GETOPT	"S:R:H:E:P:G:B:f:6s:d"
+#define COMMON_CONFIG_GETOPT	"S:R:H:E:P:G:B:f:6s:dh"
 
 #define _SERVER_CONFIG_GETOPT_LONG					\
 	COMMON_CONFIG_GETOPT_LONG,					\
@@ -170,6 +172,7 @@ enum {
 	"  --liveness-timeout=<MSEC>: first ping timeout (in msec)\n" \
 	"  --ping-timeout=<MSEC>: ping retry timeout (in msec)\n" \
 	"  --max-ping-retry=<NUM>: max retries for ping connection checks\n" \
+	"  -h,--help: show this help text\n" \
 	"  -d,--debug: enable debug\n"
 
 #define _SERVER_CONFIG_USAGE	    \

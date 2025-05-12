@@ -67,6 +67,7 @@ int main(int argc, char **argv)
 		case 'n':
 			service_name = optarg;
 			break;
+		case 'h':
 		default:
 			usage();
 			return 1;

@@ -123,6 +123,7 @@ int main(int argc, char **argv)
 			lookup = optarg;
 			break;
 #endif
+		case 'h':
 		default:
 			usage();
 			return 1;

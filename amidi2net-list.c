@@ -12,12 +12,14 @@ static void usage(void)
 	       "amidi2net-list [options]\n\n"
 	       "options:\n"
 	       "  -t,--timeout=<MSEC>: exit timeout in msec\n"
-	       "  -a,--all: browse also local host\n");
+	       "  -a,--all: browse also local host\n"
+	       "  -h,--help: show this help text\n");
 }
 
 static const struct option long_opts[] = {
 	{"timeout", 1, 0, 't'},
 	{"all", 1, 0, 'a'},
+	{"help", 0, 0, 'h'},
 	{}
 };
 
@@ -43,7 +45,7 @@ int main(int argc, char **argv)
 	int ignore_local = 1;
 	int c, opt_idx;
 
-	while ((c = getopt_long(argc, argv, "t:a",
+	while ((c = getopt_long(argc, argv, "t:ah",
 				long_opts, &opt_idx)) != -1) {
 		switch (c) {
 		case 't':
@@ -52,6 +54,7 @@ int main(int argc, char **argv)
 		case 'a':
 			ignore_local = 0;
 			break;
+		case 'h':
 		default:
 			usage();
 			return 1;
