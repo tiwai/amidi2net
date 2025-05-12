@@ -13,12 +13,14 @@ static void usage(void)
 	       "options:\n"
 	       "  -t,--timeout=<MSEC>: exit timeout in msec\n"
 	       "  -a,--all: browse also local host\n"
+	       "  -v,--version: show the version number\n"
 	       "  -h,--help: show this help text\n");
 }
 
 static const struct option long_opts[] = {
 	{"timeout", 1, 0, 't'},
 	{"all", 1, 0, 'a'},
+	{"version", 0, 0, 'v'},
 	{"help", 0, 0, 'h'},
 	{}
 };
@@ -45,7 +47,7 @@ int main(int argc, char **argv)
 	int ignore_local = 1;
 	int c, opt_idx;
 
-	while ((c = getopt_long(argc, argv, "t:ah",
+	while ((c = getopt_long(argc, argv, "t:ahv",
 				long_opts, &opt_idx)) != -1) {
 		switch (c) {
 		case 't':
@@ -54,6 +56,9 @@ int main(int argc, char **argv)
 		case 'a':
 			ignore_local = 0;
 			break;
+		case 'v':
+			printf("v%s\n", VERSION);
+			return 0;
 		case 'h':
 		default:
 			usage();

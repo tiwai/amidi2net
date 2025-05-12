@@ -167,6 +167,9 @@ int am2n_config_parse_option(struct am2n_config *config,
 		config->auth_secret = optarg;
 		return 1;
 #endif
+	case OPT_VERSION:
+		printf("v%s\n", VERSION);
+		exit(0);
 	case OPT_DEBUG:
 		enable_debug++;
 		return 1;
