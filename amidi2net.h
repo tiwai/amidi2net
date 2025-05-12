@@ -82,6 +82,8 @@ struct ump_session {
 	unsigned int ping_req;		/* # of ping that have been requested */
 	uint64_t missing_timeout;	/* next timeout of retransmit request */
 	uint64_t ping_timeout;		/* next timeout of ping */
+	unsigned int ping_sent_id;	/* last sent ping id */
+	uint64_t ping_sent_tstamp;	/* timestamp of the last ping */
 	enum ump_client_state state;	/* running state of client */
 
 	struct ump_pending_buffer pending_buffer; /* input pending ring buffer */

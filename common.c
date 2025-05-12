@@ -146,6 +146,8 @@ static int send_ping(struct ump_session *session)
 	int len = 1;
 
 	ping_id = (unsigned int)(session->ctx->tstamp >> 16);
+	session->ping_sent_id = ping_id;
+	session->ping_sent_tstamp = session->ctx->tstamp;
 	add_signature(buf);
 	len += cmd_fill_ping(buf + 4, (unsigned char *)&ping_id);
 	assert(len * 4 <= sizeof(buf));
@@ -1015,6 +1017,21 @@ static int nak_not_expected(struct ump_sock *sock, const void *addr,
 	return 0;
 }
 
+/* print a debug message for a replied ping with the estimated latency */
+static void debug_ping_reply(struct ump_session *session,
+			     const unsigned char *cmd)
+{
+	unsigned int ping_id;
+	uint64_t tdiff;
+
+	ping_id = *(unsigned int *)(cmd + 4);
+	if (ping_id == session->ping_sent_id) {
+		tdiff = session->ctx->tstamp - session->ping_sent_tstamp;
+		debug("ping-reply received: round-trip time = %g ms",
+		      (double)tdiff / 1000000.0);
+	}
+}
+
 /* Process a UDP packet;
  * The data might be modified for UMP byte swaps
  */
@@ -1243,6 +1260,7 @@ static int process_session_cmd(struct am2n_ctx *ctx,
 			break;
 
 		case UMP_NET_PING_REPLY:
+			debug_ping_reply(session, cmd);
 			debug2("ping reply: id=%02x:%02x:%02x:%02x",
 			       cmd[4], cmd[5], cmd[6], cmd[7]);
 			// TODO: check ping id
