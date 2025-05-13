@@ -1,0 +1,449 @@
+.TH AMIDI2NET 1 "May 2025"
+.SH NAME
+amidi2net \- ALSA Network MIDI 2.0 UDP Server and Client
+.SH SYNOPSIS
+\fBamidi2net-server\fP [\fI\-options\fP]
+
+\fBamidi2net-client\fP [\fI\-options\fP] \fIserver-address\fP \fIserver-port\fP
+
+\fBamidi2net-client\fP [\fI\-options\fP] \fI\-l\fP \fIservice-name\fP
+
+\fBamidi2net-list\fP [\fI\-options\fP]
+.SH DESCRIPTION
+\fBamidi2net\-server\fP and \fBamidi2net\-client\fP are Network MIDI
+2.0 UDP server and client programs with ALSA API.
+The implementation is based on Network MIDI 2.0 (UDP) Transport
+Specification v1.0.
+
+\fBamidi2net\-server\fP exposes a single UMP Endpoint to the network
+over a UDP port. The Endpoint is advertised via mDNS using Avahi for
+discovery.
+\fBamidi2net\-client\fP connects to the given Network MIDI server via
+UDP. Multiple clients may be connected to a single server.
+
+Both servers and clients are backed by either ALSA sequencer API or
+ALSA rawmidi UMP API to communicate with devices or applications on
+the server or the client, so that they can work as a bridge.
+The actual behavior of the program depends on the selected I/O
+backend.
+
+\fBamidi2net\-list\fP is a program to browse the running MIDI 2.0
+Network services on the net.
+
+The server program can run without any command line arguments.
+As default, a free UDP port is assigned and the port number is printed
+in the output.
+
+Meanwhile, the invocation of a client needs the server IP address (or
+the host name) and the UDP port number of the server in the command
+line arguments.
+Alternatively, you can invoke the client with \fI\-\-lookup\fP (or
+\fI\-l\fP) option together with the mDNS service name of the target
+Network MIDI host instead of passing the address and the port
+manually, too.
+
+.SH COMMON OPTIONS FOR AMIDI2NET\-SERVER and CLIENT
+.TP
+\fI\-H, \-\-hub=<MIDIVERSION>\fP
+Run with I/O backend in ALSA sequencer hub mode.
+This is the default mode. 
+\fI<MIDIVERSION>\fP indicates the MIDI version of the ALSA sequencer
+client, and takes a value of either 1 or 2, corresponding to MIDI 1.0
+and MIDI 2.0 protocols.
+.TP
+\fI\-S, \-\-seq=<SEQ:PORT>\fP
+Run with I/O backend in ALSA sequencer bridge mode.
+\fI<SEQ:PORT>\fP specifies the ALSA sequencer client and port
+numbers to bind.
+When a string name is passed as the sequencer client number,
+the first matching one is picked up, instead.
+.TP
+\fI\-R, \-\-rawmidi=<DEVICE>\fP
+Run with I/O backend in ALSA rawmidi bridge mode.
+\fI<DEVICE>\fP specifies ALSA rawmidi UMP device to bound.
+Note that it's no device file name but the string passed to
+\fIsnd_ump_open()\fP function API (e.g. \fBhw:1,0\fP).
+.TP
+\fI\-N, \-\-ep\-name=<NAME>\fP
+Specify the UMP Endpoint name string.
+This option is used only for hub mode.
+.TP
+\fI\-P, \-\-prod\-id=<NAME>\fP
+Specify the UMP Product Id string.
+This option is used only for hub mode.
+.TP
+\fI\-G, \-\-groups=<NUM>\fP
+Specify the number of UMP Groups.
+This option is used only for hub mode.
+.TP
+\fI\-B, \-\-blocks=<NUM>\fP
+Specify the number of UMP Function Blocks.
+This option is used only for hub mode.
+.TP
+\fI\-f, \-\-fec=<NUM>\fP
+Specify the number of FEC data.
+Passing 0 disables the FEC.
+.TP
+\fI\-6, \-\-ipv6\fP
+Enable IPv6 support.
+.TP
+\fI\-\-tolerance=<N>\fP
+Specify the number of UMP words before triggering a retransmit request.
+Default is 8.
+.TP 
+\fI\-\-missing\-pkt\-timeout=<MSEC>\fP
+Specify the timeout for missing packet resubmission in milli seconds.
+Default is 30.
+.TP
+\fI\-\-retransmit\-timeout=<MSEC>\fP
+Specify the timeout for retransmit retry in milli seconds.
+Default is 100.
+.TP
+\fI\-\-max\-missing\-retry=<NUM>\fP
+Specify the number of maximum retries for missing packet recovery.
+Default is 5.
+.TP
+\fI\-\-zerolength\-ump\-timeout=<MSEC>\fP
+Specify the timeout for triggering the zero-length UMP data in milli
+seconds.
+Default is 100.
+.TP
+\fI\-\-liveness\-timeout=<MSEC>\fP
+Specify the timeout for the first ping message in milli seconds, for
+verifying the activity of the connect host/client.
+Default is 50000 for server, 55000 for client.
+.TP
+\fI\-\-ping\-timeout=<MSEC>\fP
+Specify the timeout for ping retries in milli seconds.
+Default is 100.
+.TP
+\fI\-\-max\-ping\-retry=<NUM>\fP
+Specify the maximum number of retries for ping connection checks.
+Default is 3.
+.TP
+\fI\-\-passthrough\fP
+Disables the UMP Stream message handing by the client/server program.
+This option is effective only in ALSA sequencer hub mode, or bridge
+mode connected to the legacy sequencer client.
+.TP
+\fI\-\-fail\-test=<N>\fP
+Simulate package failures at random in \fI1/N\f/P probability.
+Default is 0, to disable the feature.
+.TP
+\fI\-\-fail\-test\-mode=<MODE>\fP
+Specify the package failure test mode.
+The \fIMODE\fP argument takes from 0 to 4.
+Default is 0.
+.TP
+\fI\-\-input\-buffer\-size=<N>\fP
+Specify the size of the input pending buffer in words.
+Default is 128.
+.TP
+\fI\-\-output\-buffer\-size=<N>\fP
+Specify the size of the output cache buffer in words.
+Default is 64.
+.TP
+\fI\-\-version\fP
+Show the version number of the program.
+.TP
+\fI\-h, \-\-help\fP
+Show the help text.
+.TP
+\fI\-q, \-\-quiet\fP
+Suppress the console output except for error messages.
+.TP
+\fI\-d, \-\-debug\fP
+Increase the message verbosity, enable the debug messages.
+
+.SH OPTIONS FOR AMIDI2NET\-SERVER
+.TP
+\fI\-p, \-\-port=<PORT>\fP
+Specify the UDP port.
+When 0 is passed, the server tries to assign a free port
+automatically.
+Default is 0.
+
+\fI\-s, \-\-session=<N>\fP
+Specify the maximum number of sessions that can be connected to a
+single host.
+Default is 8.
+.TP
+\fI\-\-auth\fP
+Enable the authentication.
+.TP
+\fI\-\-user\-auth\fP
+Enable the user-authentication.
+.TP
+\fI\-\-auth\-forced\fP
+Force the authentication.
+.TP
+\fI\-u, \-\-user=<NAME>\fP
+Specify the name used for the user-authentication.
+.TP
+\fI\-x, \-\-secret=<STR>\fP
+Specify the secret string for the authentication or the password for
+the user-authentication.
+
+.SH OPTIONS FOR AMIDI2NET\-CLIENT
+.TP
+\fI\-\-invitation\-timeout=<MSEC>\fP
+Specify the timeout for invitation in milli seconds.
+Default is 1000.
+.TP
+\fI\-\-invitation\-pending\-timeout=<MSEC>\fP
+Specify the extended timeout after receiving pending reply in milli
+seconds.
+Default is 10000.
+.TP
+\fI\-\-max\-invitation\-retry=<NUM>\fP
+Specify the maximum number of retries for invitations.
+Default is 5.
+
+.SH OPTIONS FOR AMIDI2NET\-LIST
+.TP
+\fI\-a, \-\-all\fP
+Browse also local host.
+.TP
+\fI\-t, \-\-timeout=<MSEC>\fP:
+Specify the timeout to exit the program.
+
+.SH ALSA SEQUENCER HUB MODE
+In ALSA sequencer hub mode, a server or a client creates an ALSA
+sequencer client that can be connected arbitrarily from/to other ALSA
+sequencer clients, and the UMP data is transferred from/to the network
+over this hub client.
+Unlike the other bridge modes, the UMP Endpoint and Function Block
+information isn't mirrored to the network, but it creates own Endpoint
+and Function Block information.
+
+The default MIDI version is 1, and the MIDI version cannot be changed
+during the runtime.
+
+Once after running a servier or a client, you can connect from/to this
+ALSA sequencer client to any other ALSA sequencer programs or devices
+as usual.
+
+For composing a UMP Endpoint Info, this mode needs a UMP Endpoint name
+and a UMP product ID.
+For specifying non-default strings, use \fI\-\-ep\-name\fP and
+\fI\-\-prod\-id\fP options. 
+
+The number of UMP Groups and Function Blocks of the hub can be
+specified via \fI\-\-groups\fP and \fI\-\-blocks\fP options,
+respectively.  As default, a single FB containing all 16 Groups is
+created.  As of this writing, the only valid configuration is a single
+FB containing all Groups or multiple FBs containing each single
+Group.
+
+In the hub mode, the program tries to respond to the UMP Stream
+messages for Endpoint and Function Block inquiries, based on the own
+Endpoint and Function Block information.
+If you would like to handle it by the other connected application
+under the hub, pass \fI\-\-passthrough\fP option to skip the UMP
+Stream message handling.
+
+.SH ALSA SEQUENCER BRIDGE MODE
+When a server or a client runs in ALSA sequencer bridge mode with
+\fI\-\-seq\fP option, the program connects to the given ALSA sequencer
+client and it mirrors both inputs and outputs between the network and
+the specified ALSA sequencer client.  The UMP data is copied 1:1
+transparently between them.  When the connected ALSA sequencer client
+exits, the amidi2net server/client program exits, too.
+
+The UMP Stream messages are passed through to the bridged ALSA
+sequencer client unless it's connected to a legacy ALSA sequencer
+client (i.e. non-UMP client).  For the legacy client, the program
+tries to respond to UMP Stream messages like in the hub mode.
+
+.SH RAWMIDI BRIDGE MODE
+When a server or a client runs in ALSA rawmidi bridge mode with
+\f\-\-rawmidi\fP option, the program reads/writes the UMP device
+directly and exclusively via ALSA rawmidi API, and the UMP data is
+copied 1:1 from/to the network, including UMP Stream messages.
+
+.SH NETWORK PORTS
+The UDP port number for the server can be specified via \fI\-\-port\fP
+option.  The default port is 0, which means that a free UDP port
+is assigned automatically.  The assigned port number is printed at the
+server invocation.
+
+The running network host address and the UDP port can be browsed over
+mDNS.  See the section below.
+
+For enabling IPv6, pass \fI\-\-ipv6\fP option.  When this option
+is set to server, both IPv4 and IPv6 sockets are created.  When this
+is set to client, the client attempts to connect via IPv6 instead of
+IPv4.
+
+.SH AUTHENTICATIONS
+When you pass \fI\-\-auth\fP option to the server, the server runs
+with the standard authentication enabled.  It will ask the secret
+string for the authentication on a prompt, or you can pass it with
+\fI-\-\secret\fP option.
+
+When you pass \fI\-\-user\-auth\fP option to the server, the server
+will run with the user-authentication enabled, and it will ask a user
+name as well as a password for the user-authentication, instead.  You
+can pass \fI-\-\user\fP option for the user name and \fI\-\-secret\fP
+option for the password, too.
+
+So far, you can't use two different authentication mechanisms on the
+server, but enable only one of two.  Without those options above, the
+server runs without authentication.
+
+The server has also \fI\-\-auth\-forced\fP option for prohibiting the
+fallback when the given authentication from a client doesn't match.
+As default, the server still falls back to no authentication and
+accepts the connection when the client doesn't support
+authentications.
+
+When a client receives the command "invitation reply with
+authentication required" from the server, it will ask you the secret
+string on a prompt.  You can pass it with \fI\-\-secret\fP option
+to the client beforehand, too.
+
+Similarly, when a client receives the command "invitation reply with
+user-authentication required" from the server, it'll ask you the user
+name and the password on a prompt.  You can pass them with
+\fI\-\-user\fP and \fI\-\-secret\fP options to the client beforehand,
+too.
+
+.SH FORWARD ERROR CORRECTION (FEC)
+Forward Error Correction (FEC) is enabled as default on both server
+and client, and its default count is 3.  The FEC count number can be
+changed via \fI\-\-fec\fP option.  FEC can be disabled by passing
+0 to the option.
+
+.SH PUBLISHING OVER MDNS
+The service is published and discoverable over mDNS.  The default
+service name is \fIamidi2net\fP.
+
+You can pass \fI\-\-service-name\fP option to server for
+specifying a different service name string to be exposed.
+
+For obtaining the list of the running MIDI 2.0 network services, use
+\fBamidi2net\-list\fP program.  Simply running this program will show
+the currently running Network MIDI 2.0 services on the net.
+
+The services on the local host are excluded as default.  For browsing
+also the services on the local host, pass \fI\-\-all\fP option.
+
+The \fBamidi2net\-list\fP program quits after a certain time out, as
+default in 1.5 seconds.  You can change the time out value via
+\fI\-\-timeout\fP option, specified in milli seconds.
+
+.SH SESSION LIMITS
+The server can accept multiple connections from clients.
+The max number of sessions that can be connected at the same time to a
+single host can be specified via \fI\-\-sessions\fP option.
+The default value is 8.
+
+.SH SESSION HEARTBEAT
+For verifying whether the connected server or client is still alive,
+the server or client sends a Ping command periodically to the
+connected client or server.  This period is specified via
+\fI\-\-liveness\-timeout\fP option, and its default is 5000 msec for
+servers and 5500 msec for clients.  Clients have a slightly longer
+timeout as default for avoiding doubly pings from the both sides.
+
+When the connected host or client doesn't reply to a Ping, the sender
+retries the Ping again after a certain timeout.  This timeout is
+specified via \fI\-\-ping\-timeout\fP option, and its default is 100
+msec.
+
+When the connected host or client still doesn't reply and the failures
+reach to the upper limit, the sender terminates the session.  This
+threshold is defined via \fI\-\-max\-ping\-retry\fP option, and its
+default is 3.
+
+.SH PACKET RETRANSMIT REQUEST
+When server or client detects one or more packets missing by checking
+the seqno series, it may send a Retransmit Request command.  This
+happens either when the seqno jumps too high or when the missing
+packet isn't delivered after a certain period.  The former threshold
+is specified via \fI\-\-tolerance\fP option and its default is 8.
+The latter timeout is specified via \fI\-\-missing\-pkt\-timeout\fP
+option, and its default value is 30 msec.
+
+After a Retransmit Request command is sent, the sender waits for the
+Retransmit Request Reply command.  If the reply doesn't arrive for a
+certain time period, another Retransmit Request command is sent.  This
+timeout is specified via \fI\-\-retransmit\-timeout\fP option, and its
+default value is 100 msec.
+The Retransmit Request command may repeat until the upper limit,
+specified via \fI\-\-max\-missing\-retry\fP, and its default is 5.
+
+When server or client still doesn't get the missing packet even after
+multiple retries, it gives up and tries to reset the session by
+sending a Session Reset command.
+
+.SH ZERO-LENGTH UMP
+Both server or client will send a zero-length UMP message when it
+doesn't receive any UMP input from the I/O backend for a certain
+period (hence it decides as idle).  This period is specified via
+\fI\-\-zerolength\-ump\-timeout\fP option, and its default value is
+100 msec.
+The zero-length UMP messages are repeated at least for the number of
+FEC data.
+
+.SH INVITATION RETRY
+After sending the Invitation Request command to the host, a client
+waits for a certain period, and if there is no reply, it retries to
+send another Invitation Request command.  This period is defined via
+\fI\-\-invitation\-timeout\fP option, and its default is 1000 msec
+(1 sec). 
+When the client receives an Invitation Reply Pending message, it
+extends the timeout, as default 10000 msec (10 sec).  This extended
+timeout can be specified via \fI\-\-invitation\-pending\-timeout\fP
+option.
+When the invitation failures reach to the upper limit, client gives up
+and quits.  This threshold is defined via
+\fI\-\-max\-invitation\-retry\fP option and its default value is 3.
+
+.SH INPUT AND OUTPUT BUFFER SIZES
+The sizes of the input pending buffer and the output cache buffer can
+be specified via \fI\-\-input\-buffer\-size\fP and
+\fI\-\-output\-buffer\-size\fP options, respectively.  The default
+size of the input pending buffer is 128, while the default size of the
+output cache buffer is 64.
+
+The input buffer size influences on how many missing input packets are
+allowed before retransmit request, while the output buffer size
+influences on the available retransmit request sizes.
+
+Both default values should be large enough, and those usually don't
+need to be adjusted.
+
+.SH TESTING PACKET FAILURES
+The server and client program can simulate UDP packet delivery
+failures for testing purposes.  When \fI\-\-fail\-test\fP option is
+passed with a positive number, a packet is dropped (or swapped) at
+random of \fI1/N\fP probability, where \fIN\fP is the given number.
+For example, \fI\-\-fail\-test=50\fP will result in the drops of 2% of
+packets.
+
+There are several test modes available, and it can be specified via
+\fI\-\-fail\-test\-mode\fP option, taking a value from 0 to 4.
+.TP
+0 is the default behavior, a single packet drop at sending.
+.TP
+1 is to drop packet(s) up to FEC size at sending, so that the
+receiver triggers a Retransmit Request.
+.TP
+2 is to swap two packets at sending.
+.TP
+3 and 4 are similarly to drop a packet and to drop FEC packets but
+applied at receiving packets.
+(There is no swap-test at receiving.)
+
+.SH DEBUGGING
+Passing \fI\-\-debug\fP will enable the debug outputs.
+Passing the option twice (or more) will enable more verbose outputs.
+
+On the other hand, passing \fI\-\-quiet\fP suppresses the output messages
+except for error messages.
+
+.SH SEE ALSO
+\fB
+aconnect(1)
+\fP

@@ -5,6 +5,8 @@ if SUPPORT_MDNS
 bin_PROGRAMS += amidi2net-list
 endif
 
+man_MANS = amidi2net.1 amidi2net-server.1 amidi2net-client.1 amidi2net-list.1
+
 COMMON_SOURCES = \
 	common.c \
 	options.c \
