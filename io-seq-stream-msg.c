@@ -235,7 +235,7 @@ static void reply_ump_stream_ep_device(struct am2n_ctx *ctx)
 
 /* Helper to reply a string */
 static void reply_ump_stream_string(struct am2n_ctx *ctx, const uint8_t *name,
-				    unsigned int type, unsigned int extra,
+				    unsigned int status, unsigned int extra,
 				    unsigned int start_ofs)
 {
 	unsigned int pos;
@@ -250,7 +250,8 @@ static void reply_ump_stream_string(struct am2n_ctx *ctx, const uint8_t *name,
 	for (;;) {
 		if (pos == start_ofs) {
 			memset(&buf, 0, sizeof(buf));
-			buf.hdr.type = type;
+			buf.gen.type = SND_UMP_MSG_TYPE_STREAM;
+			buf.gen.status = status;
 			buf.raw[0] |= extra;
 		}
 		buf.raw[pos / 4] |= *name++ << ((3 - (pos % 4)) * 8);
